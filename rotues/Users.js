@@ -86,7 +86,7 @@ router.patch('/:userId', async (req, res) => {
 
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
-    User.findOne({ email: email }, async (err, user) => {
+    User.findOne({ email }, async (err, user) => {
         if (err) {
             return res.json({
                 loginSuccess: false,
@@ -95,9 +95,29 @@ router.post('/login', (req, res) => {
         }
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            return console.log('비밀번호가 매치하지 않습니다!', password);
+            res.json({
+                loginSuccess: false,
+                message: '비밀번호가 일치하지 않습니다!',
+            });
+            // return console.log('비밀번호가 매치하지 않습니다!', password);
         }
-        return console.log('로그인 돼었습니다!', isMatch);
+        // 비밀번호가 일치하면 Users 모델의 generateToken 함수로 토큰 생성 후 저장
+        user.generateToken()
+            .then(user => {
+                res.cookie('x_auth', user.token)
+                    .status(200)
+                    .json({
+                        loginSuccess: true,
+                        userId: user._id,
+                    })
+                    .catch(err => {
+                        res.status(400).send(err);
+                    });
+            })
+            .catch(err => {
+                res.json({ loginSuccess: false, err });
+            });
+        // console.log('로그인 돼었습니다!', isMatch);
     });
 });
 module.exports = router;
