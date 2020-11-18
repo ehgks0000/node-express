@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 
-const db = require("./db");
-const usersRoute = require("./rotues/Users");
-const bodyparser = require("body-parser");
+const db = require('./db');
+const usersRoute = require('./rotues/Users');
+const bodyparser = require('body-parser');
 require('dotenv/config');
 // const dotenv = require('dotenv');
 // dotenv.config();
@@ -16,13 +16,12 @@ app.use(cors());
 // cors 설정하니깐 화면 왜 안나오냐 ?  cors() 괄호 써야함
 
 app.use(bodyparser.json());
-app.use("/users", usersRoute);
+app.use('/users', usersRoute);
 
-
-const port = process.env.PORT || 1337
+const port = process.env.PORT || 1337;
 
 app.listen(port, () => {
-  console.log('server is open', port);
+    console.log('server is open', port);
 });
 
 module.exports = app;

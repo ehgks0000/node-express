@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
-
     email: {
         type: String,
         required: true,
         unique: true,
         // 유닉 옵션 때문에 이메일 중복시 안만들어짐
-        lowercase: true
+        lowercase: true,
+        trim: true,
     },
     password: {
         type: String,
@@ -19,27 +19,27 @@ const UserSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true
+        required: true,
     },
     age: {
         type: Number,
-        required: true
+        required: true,
     },
     date: {
         type: Number,
-        default: Date.now
-    }
-
+        default: Date.now,
+    },
 });
 
-UserSchema.pre("save", function(next) {
-
-    var user = this;
-    if (user.isModified("password")) {
-        bcrypt.genSalt(10, (err, salt)=>{
+//페스워드 들어가기 전 해싱됨
+// 화살표 함수가 this 범위를 바꿔서 오류
+UserSchema.pre('save', function (next) {
+    let user = this;
+    if (user.isModified('password')) {
+        bcrypt.genSalt(10, function (err, salt) {
             if (err) return next(err);
-            bcrypt.hash(user.password, salt, (err, hash)=>{
-                if(err) return next(err);
+            bcrypt.hash(user.password, salt, function (err, hash) {
+                if (err) return next(err);
                 user.password = hash;
                 next();
             });
@@ -50,9 +50,13 @@ UserSchema.pre("save", function(next) {
 });
 
 // model methods // 4
-UserSchema.methods.authenticate = function (password) {
-    var user = this;
-    return bcrypt.compareSync(password,user.password);
-  };
+// UserSchema.methods.authenticate = function (password) {
+//     var user = this;
+//     return bcrypt.compareSync(password, user.password);
+// };
 
-module.exports = mongoose.model("User", UserSchema);
+UserSchema.methods.comparePassword = function (candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+module.exports = mongoose.model('User', UserSchema);
