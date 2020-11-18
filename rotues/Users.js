@@ -34,13 +34,38 @@ router.post("/", async (req,res)=> {
     }
 });
 //id값으로 특정 유저 검색
-router.get("/:id", async(req, res)=>{
+router.get("/:userId", async(req, res)=>{
     try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.userId);
         res.json(user);
     } catch (err) {
         res.json({message: err});
     }
 })
+//_id값으로 특정 유저 삭제
+router.delete("/:userId", async (req, res) =>{
+    try {
+        const removedUser = await User.deleteOne({_id : req.params.userId});
+        res.json(removedUser);
+    } catch (err) {
+        res.json({message: err});
+    }
+} );
 
+//_id값으로 특정 유저 수정하기
+router.patch("/:userId", async (req, res)=>{
+    try {
+        const updatedUser = await User.updateOne(
+            {_id: req.params.userId}, 
+            {$set: 
+                {
+                    name: req.body.name, 
+                    age: req.body.age, 
+                    password: req.body.password
+                }});
+        res.json(updatedUser);
+    } catch (err) {
+        res.json({message: err});
+    }
+})
 module.exports = router;
