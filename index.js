@@ -12,7 +12,8 @@ const app = express();
 app.use(cors);
 
 app.get('/api', (req, res) => {
-  res.status(404).json({message: "asdfadsfasdf"})
+  // res.status(404).json({message: "asdfadsfasdf"})
+  res.send("API OPEN")
 });
 
 const port = process.env.PORT || 1337

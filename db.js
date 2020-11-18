@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 
 const db = async ()=> {
     let uri = process.env.MONGODB;
-
-    const conn = await mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true});
+    
+    const conn = await mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
     console.log(`Mongoose connected : ${conn.connection.host}`)
 }
 
