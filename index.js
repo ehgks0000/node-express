@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const db = require("./db");
+const usersRoute = require("./rotues/Users");
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -9,12 +10,11 @@ db();
 
 const app = express();
 
-app.use(cors);
+// app.use(cors);
+// cors 설정하니깐 화면 왜 안나오냐 ?
 
-app.get('/api', (req, res) => {
-  // res.status(404).json({message: "asdfadsfasdf"})
-  res.send("API OPEN")
-});
+app.use("/users", usersRoute);
+
 
 const port = process.env.PORT || 1337
 
