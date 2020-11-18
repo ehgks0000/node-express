@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema({
 
@@ -13,6 +14,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
+        minlength: 5,
         // 공백 제거
     },
     name: {
@@ -28,6 +30,29 @@ const UserSchema = new mongoose.Schema({
         default: Date.now
     }
 
-})
+});
+
+UserSchema.pre("save", function(next) {
+
+    var user = this;
+    if (user.isModified("password")) {
+        bcrypt.genSalt(10, (err, salt)=>{
+            if (err) return next(err);
+            bcrypt.hash(user.password, salt, (err, hash)=>{
+                if(err) return next(err);
+                user.password = hash;
+                next();
+            });
+        });
+    } else {
+        next();
+    }
+});
+
+// model methods // 4
+UserSchema.methods.authenticate = function (password) {
+    var user = this;
+    return bcrypt.compareSync(password,user.password);
+  };
 
 module.exports = mongoose.model("User", UserSchema);

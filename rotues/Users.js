@@ -1,4 +1,5 @@
 const express = require("express");
+
 const User = require("../models/Users")
 
 const router = express.Router();
@@ -23,12 +24,21 @@ router.post("/", async (req,res)=> {
         name: req.body.name,
         age: req.body.age,
     });
+    // const user = new User(req.body);
+
     //postman에서 post 할때 body를 json 형식으로 보내야한다.
     // console.log(user);
 
     try {
-        const savedUser = await user.save();
-        res.json(savedUser);
+        const savedUser = await user.save((err, doc) => {
+            //save 되기전 패스워드 해싱이 이뤄진다
+            if (err) return res.json({message: err});
+            return res.status(200).json({
+                message: "success",
+            })
+        });
+        // res.json(savedUser);
+        // res 2개 이상 뿌려줘서 오류 발생
     } catch (err) {
         res.json({message : err});
     }
@@ -62,7 +72,9 @@ router.patch("/:userId", async (req, res)=>{
                     name: req.body.name, 
                     age: req.body.age, 
                     password: req.body.password
-                }});
+                }
+            }
+        );
         res.json(updatedUser);
     } catch (err) {
         res.json({message: err});
