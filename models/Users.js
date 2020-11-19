@@ -35,6 +35,17 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
+//
+// UserSchema.statics.create = function (email, password, name, age) {
+//     const user = new this({
+//         email,
+//         password,
+//         name,
+//         age,
+//     });
+//     return user.save();
+// };
+
 //페스워드 들어가기 전 해싱됨
 // 화살표 함수가 this 범위를 바꿔서 오류
 UserSchema.pre('save', function (next) {
@@ -65,5 +76,15 @@ UserSchema.methods.generateToken = function () {
     return this.save()
         .then(user => user)
         .catch(err => err);
+};
+// statics와 methods의 차이 전자는 모델 자체를 가리키고 후자는 데이터를 가리킨다
+UserSchema.statics.findByToken = function (token) {
+    let user = this;
+    return jwt.verify(token, 'secretToken', function (err, decoded) {
+        return user
+            .findOne({ _id: decoded, token })
+            .then(user => user)
+            .catch(err => err);
+    });
 };
 module.exports = mongoose.model('User', UserSchema);
