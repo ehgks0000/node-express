@@ -17,7 +17,7 @@ db();
 const app = express();
 
 app.use(cors());
-// cors 설정하니깐 화면 왜 안나오냐 ?  cors() 괄호 써야함
+// cors 설정하니깐 화면 왜 안나오냐 ? >>> cors() 괄호 써야함
 
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
