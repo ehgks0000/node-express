@@ -1,6 +1,6 @@
 const express = require('express');
 
-const User = require('../models/Users');
+const User = require('../models/Users'); // controller 로 리펙토링 다해서 노필요
 const {
     register,
     getUsers,
@@ -8,6 +8,7 @@ const {
     deleteUser,
     patchUser,
     login,
+    logout,
 } = require('../controllers/Users');
 
 const { auth } = require('../middleware/auth');
@@ -35,5 +36,7 @@ router
     .patch(patchUser);
 
 router.route('/login').post(login);
+// localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까?
+// router.route('/logout').get(logout);
 
 module.exports = router;

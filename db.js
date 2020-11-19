@@ -8,6 +8,7 @@ const db = async () => {
         useNewUrlParser: true,
         useCreateIndex: true,
         useUnifiedTopology: true,
+        useFindAndModify: false, //index의 logout에서findOneAndUpdate 이게 오래 되었다고 나옴
     });
     console.log(`Mongoose connected : ${conn.connection.host}`);
 };
