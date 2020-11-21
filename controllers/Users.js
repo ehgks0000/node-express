@@ -28,11 +28,6 @@ exports.register = async (req, res) => {
             console.log('회원가입 인증메일 발송! : ', doc);
 
             const { name, email } = req.body;
-            //generateToken 함수 pending 상태 해결 어떻게?
-            // let certifyToken = '';
-            // const certifyToken123 = async () => {
-
-            // };
             user.generateToken(process.env.JWT_SECRET_KEY3).then(
                 certifyToken => {
                     const options = {
@@ -254,9 +249,9 @@ exports.sendingResetEmail = (req, res) => {
             const options = {
                 from: process.env.MAILER_EMAIL_ID,
                 to: req.body.email,
-                subject: 'Test sending email',
+                subject: '패스워드 초기화 안내 메일',
                 text: `
-                Sending Test Mail
+                회원님의 패스워드 초기화 안내
                 Id : ${user._id}
                 Email : ${user.email}
                 Token : ${process.env.CLIENT_URL}/users/reset/${resetPasswordToken}`,
