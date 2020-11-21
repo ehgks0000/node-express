@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
     email: {
@@ -32,6 +33,12 @@ const UserSchema = new mongoose.Schema({
     },
     token: {
         type: String,
+    },
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
     },
 });
 
@@ -71,7 +78,7 @@ UserSchema.methods.comparePassword = function (candidatePassword) {
 //
 UserSchema.methods.generateToken = function () {
     // 첫번째 파라미터는 토큰에 넣을 데이터, 두번째는 비밀 키, 세번째는 옵션, 네번째는 콜백함수
-    const token = jwt.sign(this._id.toHexString(), 'secretToken');
+    const token = jwt.sign(this._id.toHexString(), process.env.JWT_SECRET_KEY);
     this.token = token;
     return this.save()
         .then(user => user)
@@ -86,5 +93,20 @@ UserSchema.statics.findByToken = function (token) {
             .then(user => user)
             .catch(err => err);
     });
+};
+
+UserSchema.methods.generateEmailToken = function () {
+    // console.log(this._id);
+    // this.resetPasswordToken = '';
+    this.resetPasswordToken = jwt.sign(
+        this._id.toHexString(),
+        process.env.JWT_SECRET_RESET_KEY,
+        // { expiresIn: '20m' },
+    );
+    // this.resetPasswordToken = crypto.randomBytes(20).toString();
+    this.resetPasswordExpires = Date.now() + 3600000;
+    return this.save()
+        .then(user => user.resetPasswordToken)
+        .catch(err => err);
 };
 module.exports = mongoose.model('User', UserSchema);

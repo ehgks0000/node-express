@@ -35,7 +35,7 @@ app.use('/users', usersRoute);
 app.get('/auth', auth, (req, res) => {
     //auth 미들웨어를 통과한 상태 이므로
     //req.user에 user값을 넣어줬으므로
-    console.log('/auth 접근');
+    // console.log('/auth 접근');
     return res.status(200).json({
         _id: req.user._id,
         // isAdmin: req.user.role === 09 ? false : true,
@@ -54,10 +54,11 @@ app.get('/logout', auth, (req, res) => {
         { token: ' ' },
         // { $set: { token: '' } },
         (err, user) => {
-            if (err) return res.json({ success: false, err });
+            if (err) return res.json({ logoutSuccess: false, err });
             // res.clearCookie('x_auth');
             return res.clearCookie('x_auth').status(200).send({
-                success: true,
+                logoutSuccess: true,
+                message: '로그아웃 되었습니다!',
             });
         },
     );
@@ -71,3 +72,5 @@ app.listen(port, () => {
 });
 
 module.exports = app;
+
+// CRUD create read update delete
