@@ -1,17 +1,17 @@
 # 기초적인 Node js Back-end!
 
-##
+## 기술 스택
 
-Arcitechture : node.js && Express.js
+Arcitechture : node.js && Express.js  
 DB : MongoDB(& mongoose)
 
-##
+## 라이브러리
 
 -   bcrypt를 이용한 패스워드 해쉬화
 -   jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 -   nodemailer을 이용한 Gmail 이메일 발송
 
-## Router들
+## 주요 기능 (Router)
 
 post 로그인 : http://localhost:1337/users/login
 
