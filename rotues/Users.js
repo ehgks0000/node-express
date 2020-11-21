@@ -11,9 +11,10 @@ const {
     logout,
     sendingResetEmail,
     resetPassword,
+    certifyUser,
 } = require('../controllers/Users');
 
-const { auth, isAdmin } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 router
@@ -48,7 +49,12 @@ router.route('/reset').post(sendingResetEmail);
 //로그인 상태의 회원 리셋 토큰 발급
 router.route('/modify').get(auth, issuingResetPasswordToken);
 // 비밀번호 수정
-router.route('/:resetPasswordToken').post(resetPassword);
+router.route('/reset/:token').post(resetPassword);
+
+router.route('/certify/:token').get(certifyUser);
+
+//회원 인증 메일 보내기
+// router.route('/certify/:certifyToken').get(sendingCertifiedMail);
 
 // router.route('/test').get((req, res) => {
 //     return res.json({

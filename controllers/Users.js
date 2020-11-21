@@ -8,27 +8,50 @@ exports.register = async (req, res) => {
         return;
     }
     console.log('회원 가입 접근');
-
+    //회원 가입시 인증 메일 발송
     //body parser필요 없으면 undefined 출력됨
-
-    // const user = new User({
-    //     email: req.body.email,
-    //     password: req.body.password,
-    //     name: req.body.name,
-    //     age: req.body.age,
-    // });
     const user = new User(req.body);
-    //postman에서 post 할때 body를 json 형식으로 보내야한다.
-    // console.log(user);
-
     try {
-        const savedUser = await user.save((err, doc) => {
+        await user.save((err, doc) => {
             //save 되기전 패스워드 해싱이 이뤄진다
             if (err) {
-                // console.log(err);
-                return res.json({ message: 'err' });
+                // if (!doc.isCertified) {
+                //     return res.json({
+                //         message:
+                //             '인증되지 않은 아이디 입니다. 메일을 확인해 주세요!',
+                //     });
+                // }
+                return res.json({ message: '중복된 아이디 입니다!', err });
             }
-            console.log('회원가입 완료!');
+            //
+
+            console.log('회원가입 인증메일 발송! : ', doc);
+
+            const { name, email } = req.body;
+            //generateToken 함수 pending 상태 해결 어떻게?
+            // let certifyToken = '';
+            // const certifyToken123 = async () => {
+
+            // };
+            user.generateToken(process.env.JWT_SECRET_KEY3).then(
+                certifyToken => {
+                    const options = {
+                        from: `${process.env.MAILER_EMAIL_ID}`,
+                        to: `${email}`,
+                        subject: 'Test sending email',
+                        text: `
+                        Sending Test Mail
+    
+                        Name : ${name}
+                        Email : ${email}
+                        Token : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
+                    };
+
+                    console.log('회원 인증 토큰 : ', certifyToken);
+                    sendingMail(options);
+                },
+            );
+
             return res.status(200).json({
                 message: 'success hashing password',
                 data: doc,
@@ -40,7 +63,30 @@ exports.register = async (req, res) => {
         return res.json({ message: 'err2' });
     }
 };
-
+exports.certifyUser = async (req, res) => {
+    const token = req.params.token;
+    try {
+        const updatedUser = await User.updateOne(
+            //회원 자기자신 수정하기
+            { token: token },
+            {
+                $set: {
+                    isCertified: true,
+                    // password: req.body.password,
+                },
+            },
+        );
+        console.log(
+            `회원님의 이메일이 인증 되었습니다! ${updatedUser} : ${token}`,
+        );
+        return res.json({
+            message: '회원님의 이메일이 인증 되었습니다! ',
+            token: token,
+        });
+    } catch (err) {
+        return res.json({ message: err });
+    }
+};
 exports.getUsers = async (req, res) => {
     console.log('회원 전체검색 접근');
     try {
@@ -109,6 +155,7 @@ exports.patchUser = async (req, res) => {
     console.log('회원정보 수정 접근');
 
     if (req.user.isAdmin) {
+        //어드민 자신은 어떻게 수정하지? 디비에서 직접 수정해야 하나?
         try {
             const updatedUser = await User.updateOne(
                 //admin이 로그인 해서 파라미터 값으로 회원 정보 수정하기
@@ -172,7 +219,11 @@ exports.issuingResetPasswordToken = (req, res) => {
             });
         }
         try {
-            const resetPasswordToken = await user.generateResetToken();
+            // process.env.JWT_SECRET_KEY
+            const resetPasswordToken = await user.generateToken(
+                process.env.JWT_SECRET_KEY,
+            );
+            // generateResetPasswordToken
             console.log('리셋 토큰 발급 : ', resetPasswordToken);
             res.json({
                 message: '리셋 토큰 발급',
@@ -194,9 +245,24 @@ exports.sendingResetEmail = (req, res) => {
             });
         }
         try {
-            const resetPasswordToken = await user.generateResetToken();
+            // process.env.JWT_SECRET_KEY2
+            const resetPasswordToken = await user.generateToken(
+                process.env.JWT_SECRET_KEY2,
+            );
             console.log('리셋 토큰 : ', resetPasswordToken);
-            sendingMail(user._id, user.email, resetPasswordToken);
+
+            const options = {
+                from: process.env.MAILER_EMAIL_ID,
+                to: req.body.email,
+                subject: 'Test sending email',
+                text: `
+                Sending Test Mail
+                Id : ${user._id}
+                Email : ${user.email}
+                Token : ${process.env.CLIENT_URL}/users/reset/${resetPasswordToken}`,
+            };
+            sendingMail(options);
+            // sendingMail(user._id, user.email,options, resetPasswordToken);
 
             return res.json({
                 message: '비밀번호 초기화 이메일이 발송 되었습니다!',
@@ -209,37 +275,35 @@ exports.sendingResetEmail = (req, res) => {
 //
 exports.resetPassword = (req, res) => {
     // console.log(req.params);
-    User.findOne({ resetPasswordToken: req.params.resetPasswordToken }).then(
-        user => {
-            if (!user) {
-                return res.json({
-                    message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
-                });
-            }
-
-            //기존 패스워드랑 다르게 변경
-            const isMatch = user.comparePassword(req.body.password);
-            if (isMatch) {
-                return res.json({ message: '기존 패스워드와 동일합니다!' });
-            }
-
-            user.password = req.body.password;
-            user.resetPasswordToken = undefined;
-            // user.resetPasswordExpires = undefined;
-
-            user.save((err, doc) => {
-                //save 되기전 패스워드 해싱이 이뤄진다
-                if (err) {
-                    // console.log(err);
-                    return res.json({ message: 'err' });
-                }
-                console.log('패스워드가 변경되었습니다!');
-                return res.clearCookie('x_auth').status(200).json({
-                    message: '패스워드가 변경 되었습니다. (토큰 삭제)',
-                });
+    User.findOne({ token: req.params.token }).then(user => {
+        if (!user) {
+            return res.json({
+                message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
             });
-        },
-    );
+        }
+
+        //기존 패스워드랑 다르게 변경
+        const isMatch = user.comparePassword(req.body.password);
+        if (isMatch) {
+            return res.json({ message: '기존 패스워드와 동일합니다!' });
+        }
+
+        user.password = req.body.password;
+        user.token = undefined;
+        // user.resetPasswordExpires = undefined;
+
+        user.save((err, doc) => {
+            //save 되기전 패스워드 해싱이 이뤄진다
+            if (err) {
+                // console.log(err);
+                return res.json({ message: 'err' });
+            }
+            console.log('패스워드가 변경되었습니다!');
+            return res.clearCookie('x_auth').status(200).json({
+                message: '패스워드가 변경 되었습니다. (토큰 삭제)',
+            });
+        });
+    });
 };
 //
 exports.login = (req, res) => {
@@ -303,3 +367,11 @@ exports.logout = (req, res) => {
     );
     console.log('로그아웃 되었습니다!');
 };
+
+// const test = async(req, res)=>{
+
+//     const test2 = await asdf((err, data)=>{
+
+//         const test3 = await gkatn();
+//     })
+// }
