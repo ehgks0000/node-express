@@ -1,12 +1,12 @@
 const express = require('express');
 
-const User = require('../models/Users'); // controller 로 리펙토링 다해서 노필요
 const {
     register,
     getUsers,
     getUserById,
     deleteUser,
     patchUser,
+    issuingResetPasswordToken,
     login,
     logout,
     sendingResetEmail,
@@ -25,8 +25,9 @@ router
     .delete(auth, deleteUser)
     //회원 스스로 데이터 수정
     .patch(auth, patchUser)
+
     //회원가입
-    .post(register);
+    .post(auth, register);
 
 router
     .route('/:userId')
@@ -41,10 +42,11 @@ router.route('/login').post(login);
 // localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까?
 // router.route('/logout').get(logout);
 
-//비밀번호 까먹었을 떄
+//비밀번호 까먹었을 떄 이메일로 토큰 발급
 router.route('/reset').post(sendingResetEmail);
-
-router.route('/:resetToken').post(resetPassword);
-// router.route('/reset:resetToken').post(resetPassword);
+//로그인 상태의 회원 리셋 토큰 발급
+router.route('/patch').get(auth, issuingResetPasswordToken);
+// 비밀번호 수정
+router.route('/:resetPasswordToken').post(resetPassword);
 
 module.exports = router;

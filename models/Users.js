@@ -37,9 +37,9 @@ const UserSchema = new mongoose.Schema({
     resetPasswordToken: {
         type: String,
     },
-    resetPasswordExpires: {
-        type: Date,
-    },
+    // resetPasswordExpires: {
+    //     type: Date,
+    // },
 });
 
 //
@@ -87,7 +87,10 @@ UserSchema.methods.generateToken = function () {
 // statics와 methods의 차이 전자는 모델 자체를 가리키고 후자는 데이터를 가리킨다
 UserSchema.statics.findByToken = function (token) {
     let user = this;
-    return jwt.verify(token, 'secretToken', function (err, decoded) {
+    return jwt.verify(token, process.env.JWT_SECRET_KEY, function (
+        err,
+        decoded,
+    ) {
         return user
             .findOne({ _id: decoded, token })
             .then(user => user)
@@ -95,7 +98,7 @@ UserSchema.statics.findByToken = function (token) {
     });
 };
 
-UserSchema.methods.generateEmailToken = function () {
+UserSchema.methods.generateResetToken = function () {
     // console.log(this._id);
     // this.resetPasswordToken = '';
     this.resetPasswordToken = jwt.sign(
@@ -104,7 +107,7 @@ UserSchema.methods.generateEmailToken = function () {
         // { expiresIn: '20m' },
     );
     // this.resetPasswordToken = crypto.randomBytes(20).toString();
-    this.resetPasswordExpires = Date.now() + 3600000;
+    // this.resetPasswordExpires = Date.now() + 3600000;
     return this.save()
         .then(user => user.resetPasswordToken)
         .catch(err => err);

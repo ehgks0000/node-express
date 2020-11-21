@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
 exports.sendingMail = (id, email, resetToken) => {
-    console.log(`아이디 : ${id}, 이메일 : ${email}`);
+    console.log(`패스워드 초기화 신청
+    아이디 : ${id}, 
+    이메일 : ${email}`);
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -17,7 +19,7 @@ exports.sendingMail = (id, email, resetToken) => {
         Sending Test Mail
         Id : ${id}
         Email : ${email}
-        Token : http://localhost:1337/users/reset/${resetToken}`,
+        Token : ${process.env.CLIENT_URL}/users/${resetToken}`,
     };
     transporter.sendMail(options, (err, info) => {
         if (err) {

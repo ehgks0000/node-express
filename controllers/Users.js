@@ -1,10 +1,13 @@
 const User = require('../models/Users');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 
 const { sendingMail } = require('./nodemailer');
 
 exports.register = async (req, res) => {
+    if (req.user) {
+        return res.json({
+            message: '로그인 되어있어 회원가입 접근불가',
+        });
+    }
     console.log('회원 가입 접근');
 
     //body parser필요 없으면 undefined 출력됨
@@ -16,6 +19,7 @@ exports.register = async (req, res) => {
     //     age: req.body.age,
     // });
     const user = new User(req.body);
+    // console.log(user);
 
     //postman에서 post 할때 body를 json 형식으로 보내야한다.
     // console.log(user);
@@ -27,9 +31,9 @@ exports.register = async (req, res) => {
                 // console.log(err);
                 return res.json({ message: 'err' });
             }
-            res.status(200).json({
-                message: 'success',
-                data: savedUser,
+            return res.status(200).json({
+                message: 'success hashing password',
+                data: doc,
             });
         });
         // res.json(savedUser);
@@ -104,6 +108,29 @@ exports.patchUser = async (req, res) => {
         res.json({ message: err });
     }
 };
+// 로그인 한 유저가 비밀번호 리셋 토큰 발급 issuingResetToken
+exports.issuingResetPasswordToken = async (req, res) => {
+    console.log('회원 비밀번호 수정 접근');
+
+    const userId = req.user._id;
+    User.findOne({ _id: userId }, async (err, user) => {
+        if (err || !user) {
+            return res.json({
+                message: '해당 아이디가 없습니다.',
+            });
+        }
+        try {
+            const resetPasswordToken = await user.generateResetToken();
+            console.log('리셋 토큰 발급 : ', resetPasswordToken);
+            return res.json({
+                message: '리셋 토큰 발급',
+                resetToken: resetPasswordToken,
+            });
+        } catch (err) {
+            return res.json({ message: err });
+        }
+    });
+};
 
 //패스워드 수정
 //Node Mailer 사용하여 비밀번호 수정
@@ -115,23 +142,13 @@ exports.sendingResetEmail = (req, res) => {
             });
         }
         try {
-            const resetToken = await user.generateEmailToken();
-            console.log('리셋 토큰 : ', resetToken);
-            sendingMail(user._id, user.email, resetToken);
+            const resetPasswordToken = await user.generateResetToken();
+            console.log('리셋 토큰 : ', resetPasswordToken);
+            sendingMail(user._id, user.email, resetPasswordToken);
 
             return res.json({
                 message: '비밀번호 초기화 이메일이 발송 되었습니다!',
             });
-            // return user.updateOne(
-            //     { resetPasswordToken: resetToken },
-            //     (err, success) => {
-            //         if (err) {
-            //             return res.json({
-            //                 message: '이메일이 없습니다',
-            //             });
-            //         }
-            //     },
-            // );
         } catch (err) {
             return res.json({ sendingResetEmail: false, err });
         }
@@ -140,28 +157,37 @@ exports.sendingResetEmail = (req, res) => {
 //
 exports.resetPassword = (req, res) => {
     // console.log(req.params);
-    User.findOne({ resetPasswordToken: req.params.resetToken }).then(user => {
-        if (!user) {
-            return res.json({
-                message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
-            });
-        }
-        user.password = req.body.password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-
-        user.save((err, doc) => {
-            //save 되기전 패스워드 해싱이 이뤄진다
-            if (err) {
-                // console.log(err);
-                return res.json({ message: 'err' });
+    User.findOne({ resetPasswordToken: req.params.resetPasswordToken }).then(
+        user => {
+            if (!user) {
+                return res.json({
+                    message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
+                });
             }
-            console.log('패스워드가 변경되었습니다!');
-            return res.status(200).json({
-                message: 'success',
+
+            //기존 패스워드랑 다르게 변경
+            const isMatch = user.comparePassword(req.body.password);
+            if (isMatch) {
+                return res.json({ message: '기존 패스워드와 동일합니다!' });
+            }
+
+            user.password = req.body.password;
+            user.resetPasswordToken = undefined;
+            // user.resetPasswordExpires = undefined;
+
+            user.save((err, doc) => {
+                //save 되기전 패스워드 해싱이 이뤄진다
+                if (err) {
+                    // console.log(err);
+                    return res.json({ message: 'err' });
+                }
+                console.log('패스워드가 변경되었습니다!');
+                return res.clearCookie('x_auth').status(200).json({
+                    message: '패스워드가 변경 되었습니다. (토큰 삭제)',
+                });
             });
-        });
-    });
+        },
+    );
 };
 //
 exports.login = (req, res) => {
@@ -175,6 +201,7 @@ exports.login = (req, res) => {
             });
         }
         const isMatch = await user.comparePassword(password);
+
         if (!isMatch) {
             return res.json({
                 loginSuccess: false,

@@ -36,6 +36,8 @@ app.get('/auth', auth, (req, res) => {
     //auth 미들웨어를 통과한 상태 이므로
     //req.user에 user값을 넣어줬으므로
     // console.log('/auth 접근');
+    // console.log(req.user);
+
     return res.status(200).json({
         _id: req.user._id,
         // isAdmin: req.user.role === 09 ? false : true,
@@ -48,6 +50,7 @@ app.get('/auth', auth, (req, res) => {
 
 // 여기서는 잘되네,,
 app.get('/logout', auth, (req, res) => {
+    console.log('로그아웃 접근');
     // useFindAndModify
     User.findOneAndUpdate(
         { _id: req.user._id },
