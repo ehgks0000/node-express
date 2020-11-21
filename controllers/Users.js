@@ -1,12 +1,11 @@
+const { isAdmin } = require('../middleware/auth');
 const User = require('../models/Users');
 
 const { sendingMail } = require('./nodemailer');
 
 exports.register = async (req, res) => {
     if (req.user) {
-        return res.json({
-            message: '로그인 되어있어 회원가입 접근불가',
-        });
+        return;
     }
     console.log('회원 가입 접근');
 
@@ -19,8 +18,6 @@ exports.register = async (req, res) => {
     //     age: req.body.age,
     // });
     const user = new User(req.body);
-    // console.log(user);
-
     //postman에서 post 할때 body를 json 형식으로 보내야한다.
     // console.log(user);
 
@@ -31,6 +28,7 @@ exports.register = async (req, res) => {
                 // console.log(err);
                 return res.json({ message: 'err' });
             }
+            console.log('회원가입 완료!');
             return res.status(200).json({
                 message: 'success hashing password',
                 data: doc,
@@ -58,24 +56,42 @@ exports.getUserById = async (req, res) => {
         const user = await User.findById(req.params.userId);
         console.log(`
             id : ${user._id}, 
-            email : ${user.email}, 
+            email : ${user.email},
+            isAdmin : ${user.isAdmin},
             name : ${user.name}`);
         res.json(user);
     } catch (err) {
         console.log('해당 id를 가진 회원이 없습니다!');
-        res.json({ message: err });
+        res.json({
+            message: `해당 id : ${req.params.userId} 는 없는 회원입니다!`,
+        });
     }
 };
 exports.deleteUser = async (req, res) => {
-    console.log('회원 가입');
-
+    if (!req.user) {
+        return;
+    }
+    if (req.user.isAdmin) {
+        try {
+            const removedUser = await User.deleteOne({
+                _id: req.params.userId,
+            });
+            console.log(
+                `Admin이 아이디를 삭제 하였습니다! ${req.params.userId}`,
+            );
+            return res.json({
+                message: '아이디가 삭제 되었습니다!',
+                data: removedUser,
+            });
+        } catch (err) {
+            return res.json({ message: err });
+        }
+    }
     //미들웨어 auth에서 유저 id를 받아야 삭제 가능
-    const userId = req.user._id;
+    // const userId = req.user._id;
     try {
-        const removedUser = await User.deleteOne({ _id: userId });
-        // const removedUser = await User.deleteOne({ _id: req.params.userId });
-        // res.json(removedUser);
-        console.log(`아이디가 삭제 되었습니다! ${user._id}`);
+        const removedUser = await User.deleteOne({ _id: req.user._id });
+        console.log(`회원님의 아이디가 삭제 되었습니다! ${req.user.userId}`);
         res.json({
             message: '아이디가 삭제 되었습니다!',
             data: removedUser,
@@ -87,13 +103,43 @@ exports.deleteUser = async (req, res) => {
 
 //이름과 나이 정보 수정
 exports.patchUser = async (req, res) => {
+    if (!req.user) {
+        return;
+    }
     console.log('회원정보 수정 접근');
 
+    if (req.user.isAdmin) {
+        try {
+            const updatedUser = await User.updateOne(
+                //admin이 로그인 해서 파라미터 값으로 회원 정보 수정하기
+                { _id: req.params.userId },
+                {
+                    $set: {
+                        name: req.body.name,
+                        age: req.body.age,
+                        isAdmin: req.body.isAdmin,
+                        // password: req.body.password,
+                    },
+                },
+            );
+            console.log(
+                `Admin이 회원님의 정보를 수정하였습니다! userId : ${req.params.userId}`,
+            );
+            return res.json({
+                message: 'Admin이 회원님의 정보를 수정하였습니다!',
+                userId: req.params.userId,
+                data: updatedUser,
+            });
+        } catch (err) {
+            return res.json({ message: err });
+        }
+    }
+
     //미들웨어 auth에서 유저 id를 받아야 수정가능
-    const userId = req.user._id;
     try {
         const updatedUser = await User.updateOne(
-            { _id: userId },
+            //회원 자기자신 수정하기
+            { _id: req.user._id },
             {
                 $set: {
                     name: req.body.name,
@@ -102,18 +148,24 @@ exports.patchUser = async (req, res) => {
                 },
             },
         );
-        res.json(updatedUser);
-        console.log(`회원 정보가 수정되었습니다! ${updatedUser}`);
+        console.log(
+            `회원 정보가 수정되었습니다! ${updatedUser} : ${req.user._id}`,
+        );
+        return res.json(updatedUser);
     } catch (err) {
-        res.json({ message: err });
+        return res.json({ message: err });
     }
 };
 // 로그인 한 유저가 비밀번호 리셋 토큰 발급 issuingResetToken
-exports.issuingResetPasswordToken = async (req, res) => {
+exports.issuingResetPasswordToken = (req, res) => {
     console.log('회원 비밀번호 수정 접근');
 
-    const userId = req.user._id;
-    User.findOne({ _id: userId }, async (err, user) => {
+    if (!req.user) {
+        // 왜 오류 발생?
+        return;
+    }
+
+    User.findOne({ _id: req.user._id }, async (err, user) => {
         if (err || !user) {
             return res.json({
                 message: '해당 아이디가 없습니다.',
@@ -122,12 +174,12 @@ exports.issuingResetPasswordToken = async (req, res) => {
         try {
             const resetPasswordToken = await user.generateResetToken();
             console.log('리셋 토큰 발급 : ', resetPasswordToken);
-            return res.json({
+            res.json({
                 message: '리셋 토큰 발급',
                 resetToken: resetPasswordToken,
             });
         } catch (err) {
-            return res.json({ message: err });
+            res.json({ message: '에러' });
         }
     });
 };
@@ -213,57 +265,41 @@ exports.login = (req, res) => {
         try {
             const userToken = await user.generateToken();
             // console.log(userToken);
-            console.log('로그인 되었습니다!');
             res.cookie('x_auth', userToken.token).status(200).json({
                 loginSuccess: true,
                 userId: user._id,
+                isAdmin: user.isAdmin,
                 token: userToken.token,
             });
+            if (user.isAdmin) {
+                console.log('Admin 로그인 되었습니다!');
+            } else {
+                console.log('로그인 되었습니다!');
+            }
         } catch (err) {
             res.json({ loginSuccess: false, err });
         }
-        // user.generateToken()
-        //     .then(user => {
-        //         res.cookie('x_auth', user.token)
-        //             .status(200)
-        //             .json({
-        //                 loginSuccess: true,
-        //                 userId: user._id,
-        //             })
-        //             .catch(err => {
-        //                 res.status(400).send(err);
-        //             });
-        //     })
-        //     .catch(err => {
-        //         res.json({ loginSuccess: false, err });
-        //     });
     });
 };
 
 exports.logout = (req, res) => {
     console.log('로그아웃 접근');
-    try {
-        const userLogout = User.findOneAndUpdate(
-            { _id: req.user._id },
-            { token: ' ' },
-        );
-        console.log(userLogout);
-        // res.clearCookie('x_auth').status(200).send({
-        //     success: true,
-        // });
-    } catch (err) {
-        res.json({ success: false, err });
+    // useFindAndModify
+    if (!req.user) {
+        return;
     }
-    // User.findOneAndUpdate(
-    //     { _id: req.user._id },
-    //     { token: ' ' },
-    //     // { $set: { token: '' } },
-    //     (err, user) => {
-    //         if (err) return res.json({ success: false, err });
-    //         // res.clearCookie('x_auth');
-    //         return res.clearCookie('x_auth').status(200).send({
-    //             success: true,
-    //         });
-    //     },
-    // );
+    User.findOneAndUpdate(
+        { _id: req.user._id },
+        { token: ' ' },
+        // { $set: { token: '' } },
+        (err, user) => {
+            if (err) return res.json({ logoutSuccess: false, err });
+            // res.clearCookie('x_auth');
+            return res.clearCookie('x_auth').status(200).send({
+                logoutSuccess: true,
+                message: '로그아웃 되었습니다!',
+            });
+        },
+    );
+    console.log('로그아웃 되었습니다!');
 };

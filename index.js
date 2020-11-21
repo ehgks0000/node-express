@@ -32,11 +32,10 @@ app.use('/users', usersRoute);
 // app.use('/auth', auth);
 
 //auth 위에 선언할때 {} 괄호 있고 없고 차이는 무엇인가?
+
 app.get('/auth', auth, (req, res) => {
     //auth 미들웨어를 통과한 상태 이므로
     //req.user에 user값을 넣어줬으므로
-    // console.log('/auth 접근');
-    // console.log(req.user);
 
     return res.status(200).json({
         _id: req.user._id,
@@ -44,28 +43,7 @@ app.get('/auth', auth, (req, res) => {
         isAuth: true,
         email: req.user.email,
         name: req.user.name,
-        // image: req.user.image,
     });
-});
-
-// 여기서는 잘되네,,
-app.get('/logout', auth, (req, res) => {
-    console.log('로그아웃 접근');
-    // useFindAndModify
-    User.findOneAndUpdate(
-        { _id: req.user._id },
-        { token: ' ' },
-        // { $set: { token: '' } },
-        (err, user) => {
-            if (err) return res.json({ logoutSuccess: false, err });
-            // res.clearCookie('x_auth');
-            return res.clearCookie('x_auth').status(200).send({
-                logoutSuccess: true,
-                message: '로그아웃 되었습니다!',
-            });
-        },
-    );
-    console.log('로그아웃 되었습니다!');
 });
 
 const port = process.env.PORT || 1337;

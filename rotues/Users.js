@@ -13,7 +13,7 @@ const {
     resetPassword,
 } = require('../controllers/Users');
 
-const { auth } = require('../middleware/auth');
+const { auth, isAdmin } = require('../middleware/auth');
 const router = express.Router();
 
 router
@@ -30,23 +30,30 @@ router
     .post(auth, register);
 
 router
-    .route('/:userId')
+    .route('/search/:userId')
     //id값으로 특정 유저 검색
-    .get(getUserById);
-//id값으로 특정 유저 삭제 //관리자만
-// .delete(deleteUser)
-//id값으로 특정 유저 수정 // 관리자만
-// .patch(patchUser);
+    .get(getUserById)
+    //id값으로 특정 유저 삭제 //관리자만
+    .delete(auth, deleteUser)
+    //id값으로 특정 유저 수정 // 관리자만
+    .patch(auth, patchUser);
 
 router.route('/login').post(login);
 // localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까?
-// router.route('/logout').get(logout);
+router.route('/logout').get(auth, logout);
+// router.get('/logout', auth, logout);
 
 //비밀번호 까먹었을 떄 이메일로 토큰 발급
 router.route('/reset').post(sendingResetEmail);
 //로그인 상태의 회원 리셋 토큰 발급
-router.route('/patch').get(auth, issuingResetPasswordToken);
+router.route('/modify').get(auth, issuingResetPasswordToken);
 // 비밀번호 수정
 router.route('/:resetPasswordToken').post(resetPassword);
+
+// router.route('/test').get((req, res) => {
+//     return res.json({
+//         message: 'Test',
+//     });
+// });
 
 module.exports = router;
