@@ -1,5 +1,6 @@
 const { isAdmin } = require('../middleware/auth');
 const User = require('../models/Users');
+const jwt = require('jsonwebtoken');
 
 const { sendingMail } = require('./nodemailer');
 
@@ -28,7 +29,8 @@ exports.register = async (req, res) => {
             console.log('회원가입 인증메일 발송! : ', doc);
 
             const { name, email } = req.body;
-            user.generateToken(process.env.JWT_SECRET_KEY3).then(
+            const expiresTime = '1h';
+            user.generateToken(process.env.JWT_SECRET_KEY3, expiresTime).then(
                 certifyToken => {
                     const options = {
                         from: `${process.env.MAILER_EMAIL_ID}`,
@@ -36,10 +38,11 @@ exports.register = async (req, res) => {
                         subject: 'Test sending email',
                         text: `
                         Sending Test Mail
-    
+                        
+                        Your info :
                         Name : ${name}
                         Email : ${email}
-                        Token : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
+                        Please click this link if you want to be certified. : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
                     };
 
                     console.log('회원 인증 토큰 : ', certifyToken);
@@ -215,16 +218,20 @@ exports.issuingResetPasswordToken = (req, res) => {
         }
         try {
             // process.env.JWT_SECRET_KEY
-            const resetPasswordToken = await user.generateToken(
+            const expiresTime = '5m';
+            const resetPasswordToken = await user.generateResetPasswordToken(
                 process.env.JWT_SECRET_KEY,
+                expiresTime,
             );
             // generateResetPasswordToken
             console.log('리셋 토큰 발급 : ', resetPasswordToken);
-            res.json({
+            // res.cookie('x_auth', userToken).status(200).json({
+            res.cookie('reset_auth', resetPasswordToken).json({
                 message: '리셋 토큰 발급',
-                resetToken: resetPasswordToken,
+                resetPasswordToken: resetPasswordToken,
             });
         } catch (err) {
+            console.log(err);
             res.json({ message: '에러' });
         }
     });
@@ -252,9 +259,11 @@ exports.sendingResetEmail = (req, res) => {
                 subject: '패스워드 초기화 안내 메일',
                 text: `
                 회원님의 패스워드 초기화 안내
+
+                Your info :
                 Id : ${user._id}
                 Email : ${user.email}
-                Token : ${process.env.CLIENT_URL}/users/reset/${resetPasswordToken}`,
+                Please click this link to change your password. : ${process.env.CLIENT_URL}/users/reset/${resetPasswordToken}`,
             };
             sendingMail(options);
             // sendingMail(user._id, user.email,options, resetPasswordToken);
@@ -268,9 +277,9 @@ exports.sendingResetEmail = (req, res) => {
     });
 };
 //
-exports.resetPassword = (req, res) => {
+exports.resetPassword = async (req, res) => {
     // console.log(req.params);
-    User.findOne({ token: req.params.token }).then(user => {
+    User.findOne({ resetPasswordToken: req.params.token }).then(async user => {
         if (!user) {
             return res.json({
                 message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
@@ -278,14 +287,15 @@ exports.resetPassword = (req, res) => {
         }
 
         //기존 패스워드랑 다르게 변경
-        const isMatch = user.comparePassword(req.body.password);
+        const isMatch = await user.comparePassword(req.body.password);
+        console.log(isMatch);
         if (isMatch) {
             return res.json({ message: '기존 패스워드와 동일합니다!' });
         }
 
         user.password = req.body.password;
         user.token = undefined;
-        // user.resetPasswordExpires = undefined;
+        user.resetPasswordToken = undefined;
 
         user.save((err, doc) => {
             //save 되기전 패스워드 해싱이 이뤄진다
@@ -293,7 +303,7 @@ exports.resetPassword = (req, res) => {
                 // console.log(err);
                 return res.json({ message: 'err' });
             }
-            console.log('패스워드가 변경되었습니다!');
+            console.log('패스워드가 변경되었습니다! 다시 로그인 해주세요!');
             return res.clearCookie('x_auth').status(200).json({
                 message: '패스워드가 변경 되었습니다. (토큰 삭제)',
             });
@@ -320,23 +330,39 @@ exports.login = (req, res) => {
             });
             // return console.log('비밀번호가 매치하지 않습니다!', password);
         }
+        if (!user.isCertified) {
+            return res.json({
+                loginSuccess: false,
+                message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
+            });
+        }
         // 비밀번호가 일치하면 Users 모델의 generateToken 함수로 토큰 생성 후 저장
         try {
-            const userToken = await user.generateToken();
-            // console.log(userToken);
-            res.cookie('x_auth', userToken.token).status(200).json({
-                loginSuccess: true,
-                userId: user._id,
-                isAdmin: user.isAdmin,
-                token: userToken.token,
-            });
+            const expiresTime = '1h'; // 1시간 후 토큰 만료로 자동 로그아웃?
+            const userToken = await user.generateToken(
+                process.env.JWT_SECRET_KEY3,
+                expiresTime,
+            );
             if (user.isAdmin) {
                 console.log('Admin 로그인 되었습니다!');
             } else {
-                console.log('로그인 되었습니다!');
+                console.log('일반회원 로그인 되었습니다!');
             }
+            // console.log(userToken);
+            return res
+                .cookie('x_auth', userToken)
+                .clearCookie('reset_auth')
+                .status(200)
+                .json({
+                    loginSuccess: true,
+                    userId: user._id,
+                    isAdmin: user.isAdmin,
+                    isCertified: user.isCertified,
+                    token: userToken,
+                    resetPasswordToken: user.resetPasswordToken,
+                });
         } catch (err) {
-            res.json({ loginSuccess: false, err });
+            res.json({ loginSuccess: false, err: '토큰 오류' });
         }
     });
 };
@@ -345,28 +371,43 @@ exports.logout = (req, res) => {
     console.log('로그아웃 접근');
     // useFindAndModify
     if (!req.user) {
-        return;
+        return res.json({ message: '유저가 없음' });
     }
     User.findOneAndUpdate(
         { _id: req.user._id },
-        { token: ' ' },
+        { token: ' ', resetPasswordToken: ' ' },
         // { $set: { token: '' } },
         (err, user) => {
             if (err) return res.json({ logoutSuccess: false, err });
             // res.clearCookie('x_auth');
+            console.log(user._id, ' : 로그아웃 되었습니다!');
             return res.clearCookie('x_auth').status(200).send({
                 logoutSuccess: true,
                 message: '로그아웃 되었습니다!',
             });
         },
     );
-    console.log('로그아웃 되었습니다!');
+    // console.log('로그아웃 되었습니다!');
 };
 
-// const test = async(req, res)=>{
+// exports.test = (req, res) => {
+//     let id = 'test_1';
+//     const token = jwt.sign({ id: id }, process.env.JWT_SECRET_KEY, {
+//         expiresIn: '6000s',
+//     });
+//     console.log(id);
+//     console.log({ id });
+//     console.log(token);
 
-//     const test2 = await asdf((err, data)=>{
+//     jwt.verify(token, process.env.JWT_SECRET_KEY, function (err, decoded) {
+//         console.log(decoded);
+//         // return user
+//         //     .findOne({ _id: decoded, token })
+//         //     .then(user => user)
+//         //     .catch(err => err);
+//     });
 
-//         const test3 = await gkatn();
-//     })
-// }
+//     return res.json({
+//         message: token,
+//     });
+// };

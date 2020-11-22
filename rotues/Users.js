@@ -12,6 +12,7 @@ const {
     sendingResetEmail,
     resetPassword,
     certifyUser,
+    test,
 } = require('../controllers/Users');
 
 const { auth } = require('../middleware/auth');
@@ -27,8 +28,26 @@ router
     //회원 스스로 데이터 수정
     .patch(auth, patchUser)
 
-    //회원가입
+    //회원가입 및 이메일인증 발송
     .post(auth, register);
+
+//이메일로 발송된 링크로 회원 인증
+router.route('/certify/:token').get(auth, certifyUser);
+
+router.route('/auth').get(auth, (req, res) => {
+    //auth 미들웨어를 통과한 상태 이므로
+    //req.user에 user값을 넣어줬으므로
+
+    return res.status(200).json({
+        _id: req.user._id,
+        // isAdmin: req.user.role === 09 ? false : true,
+        isAuth: true,
+        isAdmin: req.user.isAdmin,
+        isCertified: req.user.isCertified,
+        email: req.user.email,
+        name: req.user.name,
+    });
+});
 
 router
     .route('/search/:userId')
@@ -51,15 +70,9 @@ router.route('/modify').get(auth, issuingResetPasswordToken);
 // 비밀번호 수정
 router.route('/reset/:token').post(resetPassword);
 
-router.route('/certify/:token').get(certifyUser);
-
 //회원 인증 메일 보내기
 // router.route('/certify/:certifyToken').get(sendingCertifiedMail);
 
-// router.route('/test').get((req, res) => {
-//     return res.json({
-//         message: 'Test',
-//     });
-// });
+// router.route('/test').get(test);
 
 module.exports = router;
