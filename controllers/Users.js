@@ -1,6 +1,4 @@
-const { isAdmin } = require('../middleware/auth');
 const User = require('../models/Users');
-const jwt = require('jsonwebtoken');
 
 const { sendingMail } = require('./nodemailer');
 
@@ -313,8 +311,22 @@ exports.resetPassword = async (req, res) => {
 //
 exports.login = (req, res) => {
     console.log('로그인 접근');
+    if (req.user) {
+        const { isAdmin, isCertified, _id, email, name, age } = req.user;
+        console.log('이미 로그인 되어있습니다!');
+        return res.json({
+            message: '이미 로그인 되어있습니다!',
+            user: { _id, email, isAdmin, isCertified, name, age },
+        });
+    }
     const { email, password } = req.body;
     User.findOne({ email }, async (err, user) => {
+        // req.user.isActivated + 1
+        // if (req.user.isActivated === 3) {
+        //     return res.json({
+        //         message: '동시 접속 3개가 넘었습니다!',
+        //     });
+        // }
         if (err) {
             return res.json({
                 loginSuccess: false,
@@ -375,6 +387,7 @@ exports.logout = (req, res) => {
     }
     User.findOneAndUpdate(
         { _id: req.user._id },
+        // req.user.isActivated - 1
         { token: ' ', resetPasswordToken: ' ' },
         // { $set: { token: '' } },
         (err, user) => {

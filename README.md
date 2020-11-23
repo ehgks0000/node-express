@@ -23,6 +23,8 @@ get 회원가입 인증 메일 발송 : http://localhost:1337/users/certify/:tok
 
 del 회원 탈퇴 : localhost:1337/users/
 
+del 회원 삭제(관리자가) : localhost:1337/users/search/:userId
+
 get auth 확인 : http://localhost:1337/auth
 
 patch 회원 수정 : http://localhost:1337/users/
@@ -36,7 +38,5 @@ post 패스워드 초기화 메일 발송 : http://localhost:1337/users/reset
 get 회원 패스워드 수정 : http://localhost:1337/users/modify/
 
 post 회원 비밀번호 수정(관리자가) : http://localhost:1337/users/reset/:token
-
-del 회원 삭제(관리자가) : localhost:1337/users/search/:userId
 
 patch 회원 정보 수정(관리자가, 패스워드 제외한) : localhost:1337/users/search/:userId

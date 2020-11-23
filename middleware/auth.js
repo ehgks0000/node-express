@@ -6,7 +6,6 @@ const auth = (req, res, next) => {
     //토큰이 있으면 로그인 되어있는 상태
     User.findByToken(token, process.env.JWT_SECRET_KEY3)
         .then(user => {
-            console.log(user);
             if (!user) {
                 // res.json({
                 //     message: '로그인 안되어있습니다!',
@@ -16,17 +15,12 @@ const auth = (req, res, next) => {
             }
             req.token = token;
             req.user = user;
-            console.log(`auth 접근 : ${req.user}`);
+            console.log(`auth 접근 : ${req.user._id}`);
             next();
         })
         .catch(err => {
             throw err;
         });
 };
-const isCertified = (req, res, next) => {
-    if (!req.user.isCertified) {
-        next();
-    }
-};
 
-module.exports = { auth, isCertified };
+module.exports = { auth };

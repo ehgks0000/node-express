@@ -58,8 +58,8 @@ router
     //id값으로 특정 유저 수정 // 관리자만
     .patch(auth, patchUser);
 
-router.route('/login').post(login);
-// localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까?
+router.route('/login').post(auth, login);
+// localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까? >> 라우터 url 조심
 router.route('/logout').get(auth, logout);
 // router.get('/logout', auth, logout);
 
