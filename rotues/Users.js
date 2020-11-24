@@ -1,5 +1,4 @@
 const express = require('express');
-
 const {
     register,
     getUsers,
@@ -52,14 +51,13 @@ router.route('/auth').get(auth, (req, res) => {
 router
     .route('/search/:userId')
     //id값으로 특정 유저 검색
-    .get(getUserById)
+    .get(auth, getUserById)
     //id값으로 특정 유저 삭제 //관리자만
     .delete(auth, deleteUser)
     //id값으로 특정 유저 수정 // 관리자만
     .patch(auth, patchUser);
 
 router.route('/login').post(auth, login);
-// localhost:1337/users/logout  접근하면 왜  getUserById 여기 콘솔 3개가 다 찍힐까? >> 라우터 url 조심
 router.route('/logout').get(auth, logout);
 // router.get('/logout', auth, logout);
 

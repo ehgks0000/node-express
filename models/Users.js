@@ -12,6 +12,9 @@ const UserSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
     },
+    googleId: {
+        type: String,
+    },
     password: {
         type: String,
         required: true,
@@ -21,11 +24,11 @@ const UserSchema = new mongoose.Schema({
     },
     name: {
         type: String,
+        trim: true,
         required: true,
     },
     age: {
         type: Number,
-        required: true,
     },
     date: {
         type: Number,
@@ -53,7 +56,6 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         min: 0,
-        required: true,
     },
 });
 

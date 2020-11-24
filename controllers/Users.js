@@ -371,7 +371,7 @@ exports.login = (req, res) => {
                     isAdmin: user.isAdmin,
                     isCertified: user.isCertified,
                     token: userToken,
-                    resetPasswordToken: user.resetPasswordToken,
+                    // resetPasswordToken: user.resetPasswordToken,
                 });
         } catch (err) {
             res.json({ loginSuccess: false, err: '토큰 오류' });
