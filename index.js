@@ -1,21 +1,24 @@
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
-const { stream } = require('./config/winstons');
 
-const passport = require('./config/passport');
+const passport = require('./lib/passport');
 
-const db = require('./db');
+const connectDB = require('./db');
 
 const usersRoute = require('./rotues/Users');
 const authRoute = require('./rotues/Auth');
+
+const errorHandler = require('./middleware/error');
 const bodyparser = require('body-parser');
 const cookieparser = require('cookie-parser');
+
 const morgan = require('morgan');
-require('dotenv/config');
-// const dotenv = require('dotenv');
-// dotenv.config();
-db();
+const { stream } = require('./lib/winstons');
+
+require('dotenv').config({ path: './config/config.env' });
+
+connectDB();
 const app = express();
 app.use(morgan('combined', { stream }));
 
@@ -40,6 +43,8 @@ app.use(cookieparser());
 app.use('/users', usersRoute);
 app.use('/auth', authRoute);
 // app.use('/auth', authRoute);
+
+app.use(errorHandler);
 
 const port = process.env.PORT || 1337;
 

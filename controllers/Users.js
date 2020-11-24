@@ -1,6 +1,6 @@
 const User = require('../models/Users');
 
-const { sendingMail } = require('./nodemailer');
+const { sendingMail } = require('../lib/nodemailer');
 
 exports.register = async (req, res) => {
     if (req.user) {
@@ -394,10 +394,14 @@ exports.logout = (req, res) => {
             if (err) return res.json({ logoutSuccess: false, err });
             // res.clearCookie('x_auth');
             console.log(user._id, ' : 로그아웃 되었습니다!');
-            return res.clearCookie('x_auth').status(200).send({
-                logoutSuccess: true,
-                message: '로그아웃 되었습니다!',
-            });
+            return res
+                .clearCookie('x_auth')
+                .clearCookie('connect.sid') //구글 로그인할때 생기는데 왜생기냐?
+                .status(200)
+                .send({
+                    logoutSuccess: true,
+                    message: '로그아웃 되었습니다!',
+                });
         },
     );
     // console.log('로그아웃 되었습니다!');

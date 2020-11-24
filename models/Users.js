@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema({
     },
     googleId: {
         type: String,
+        unique: true,
     },
     password: {
         type: String,
@@ -29,6 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
+        default: 0,
     },
     date: {
         type: Number,
