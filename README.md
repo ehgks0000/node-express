@@ -7,6 +7,8 @@ DB : MongoDB(& mongoose)
 
 ## 라이브러리
 
+-   passport를 이용한 SNS로그인(google, naver)
+-   morgan && winstons를 이용한 log 저장
 -   bcrypt를 이용한 패스워드 해쉬화
 -   jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 -   nodemailer을 이용한 Gmail 이메일 발송
@@ -14,6 +16,8 @@ DB : MongoDB(& mongoose)
 ## 주요 기능 (Router)
 
 post 로그인 : http://localhost:1337/users/login
+
+get 구글 로그인 : http://localhost:1337/auth/google/
 
 get 로그아웃 : http://localhost:1337/users/logout
 

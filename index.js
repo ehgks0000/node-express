@@ -44,7 +44,7 @@ app.use('/users', usersRoute);
 app.use('/auth', authRoute);
 // app.use('/auth', authRoute);
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
 const port = process.env.PORT || 1337;
 

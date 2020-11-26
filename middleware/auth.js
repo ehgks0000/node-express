@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
             }
             req.token = token;
             req.user = user;
-            console.log(`auth 접근 : ${req.user._id}`);
+            console.log('auth 접근 : ', req.user);
             next();
         })
         .catch(err => {

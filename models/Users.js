@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true,
     },
+    naverId: {
+        type: String,
+        unique: true,
+    },
     password: {
         type: String,
         required: true,
