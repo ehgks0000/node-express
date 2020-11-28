@@ -41,7 +41,6 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cookieparser());
 app.use('/users', usersRoute);
-app.use('/auth', authRoute);
 // app.use('/auth', authRoute);
 
 // app.use(errorHandler);
@@ -58,3 +57,6 @@ module.exports = app;
 
 //todos
 //isActivated , user image upload ,
+
+//error : 유저 동시접속(여러 기기 접속) 어떻게 관리?
+// user 모델에 배열로 mac과 토큰 입력으로

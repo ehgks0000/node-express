@@ -12,12 +12,15 @@ DB : MongoDB(& mongoose)
 -   bcrypt를 이용한 패스워드 해쉬화
 -   jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 -   nodemailer을 이용한 Gmail 이메일 발송
+-   multer를 이용한 이미지 업로드
 
 ## 주요 기능 (Router)
 
 post 로그인 : http://localhost:1337/users/login
 
-get 구글 로그인 : http://localhost:1337/auth/google/
+get google 로그인 : http://localhost:1337/auth/google/
+
+get naver 로그인 : http://localhost:1337/auth/naver/
 
 get 로그아웃 : http://localhost:1337/users/logout
 
@@ -44,3 +47,5 @@ get 회원 패스워드 수정 : http://localhost:1337/users/modify/
 post 회원 비밀번호 수정(관리자가) : http://localhost:1337/users/reset/:token
 
 patch 회원 정보 수정(관리자가, 패스워드 제외한) : localhost:1337/users/search/:userId
+
+post 회원 아바타 이미지 업로드 : localhost:1337/users/uploadImg

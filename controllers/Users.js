@@ -1,5 +1,6 @@
 const User = require('../models/Users');
-
+const macaddress = require('node-macaddress');
+const multer = require('multer');
 const { sendingMail } = require('../lib/nodemailer');
 
 exports.register = async (req, res) => {
@@ -109,6 +110,14 @@ exports.getUserById = async (req, res) => {
         });
     }
 };
+exports.me = (req, res) => {
+    if (!req.user) {
+        return res.json({ message: '유저가 없음' });
+    }
+    const user = req.user;
+
+    return res.json(user);
+};
 exports.deleteUser = async (req, res) => {
     if (!req.user) {
         return;
@@ -216,7 +225,7 @@ exports.issuingResetPasswordToken = (req, res) => {
         }
         try {
             // process.env.JWT_SECRET_KEY
-            const expiresTime = '5m';
+            const expiresTime = '1h';
             const resetPasswordToken = await user.generateResetPasswordToken(
                 process.env.JWT_SECRET_KEY,
                 expiresTime,
@@ -283,10 +292,8 @@ exports.resetPassword = async (req, res) => {
                 message: '비밀번호 초기화 토큰이 유효하지 않습니다!',
             });
         }
-
         //기존 패스워드랑 다르게 변경
         const isMatch = await user.comparePassword(req.body.password);
-        console.log(isMatch);
         if (isMatch) {
             return res.json({ message: '기존 패스워드와 동일합니다!' });
         }
@@ -320,63 +327,66 @@ exports.login = (req, res) => {
         });
     }
     const { email, password } = req.body;
-    User.findOne({ email }, async (err, user) => {
-        // req.user.isActivated + 1
-        // if (req.user.isActivated === 3) {
-        //     return res.json({
-        //         message: '동시 접속 3개가 넘었습니다!',
-        //     });
-        // }
-        if (err) {
-            return res.json({
-                loginSuccess: false,
-                message: '존재하지 않는 아이디입니다.',
-            });
-        }
-        const isMatch = await user.comparePassword(password);
-
-        if (!isMatch) {
-            return res.json({
-                loginSuccess: false,
-                message: '비밀번호가 일치하지 않습니다!',
-            });
-            // return console.log('비밀번호가 매치하지 않습니다!', password);
-        }
-        if (!user.isCertified) {
-            return res.json({
-                loginSuccess: false,
-                message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
-            });
-        }
-        // 비밀번호가 일치하면 Users 모델의 generateToken 함수로 토큰 생성 후 저장
-        try {
-            const expiresTime = '1h'; // 1시간 후 토큰 만료로 자동 로그아웃?
-            const userToken = await user.generateToken(
-                process.env.JWT_SECRET_KEY3,
-                expiresTime,
-            );
-            if (user.isAdmin) {
-                console.log('Admin 로그인 되었습니다!');
-            } else {
-                console.log('일반회원 로그인 되었습니다!');
-            }
-            // console.log(userToken);
-            return res
-                .cookie('x_auth', userToken)
-                .clearCookie('reset_auth')
-                .status(200)
-                .json({
-                    loginSuccess: true,
-                    userId: user._id,
-                    isAdmin: user.isAdmin,
-                    isCertified: user.isCertified,
-                    token: userToken,
-                    // resetPasswordToken: user.resetPasswordToken,
+    User.findOne(
+        { email },
+        // { isActivated: ++1 },
+        async (err, user) => {
+            if (err) {
+                return res.json({
+                    loginSuccess: false,
+                    message: '존재하지 않는 아이디입니다.',
                 });
-        } catch (err) {
-            res.json({ loginSuccess: false, err: '토큰 오류' });
-        }
-    });
+            }
+            const isMatch = await user.comparePassword(password);
+
+            if (!isMatch) {
+                return res.json({
+                    loginSuccess: false,
+                    message: '비밀번호가 일치하지 않습니다!',
+                });
+                // return console.log('비밀번호가 매치하지 않습니다!', password);
+            }
+            if (!user.isCertified) {
+                return res.json({
+                    loginSuccess: false,
+                    message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
+                });
+            }
+            if (user.isActivated > 3) {
+                // 잘 작동하는데 만약 로그인 해놓고 토큰 만료가 된다면?
+                return res.json({
+                    message: '3개 이상 활성화',
+                });
+            }
+            // 비밀번호가 일치하면 Users 모델의 generateToken 함수로 토큰 생성 후 저장
+            try {
+                const expiresTime = '1h'; // >> 토큰 만료시간되면 로그아웃이 되는데 isActivated 수는 안줄어든다
+                const userToken = await user.generateToken(
+                    process.env.JWT_SECRET_KEY3,
+                    expiresTime,
+                );
+                user.incrementActivated(); //로그인 시
+                if (user.isAdmin) {
+                    console.log('Admin 로그인 되었습니다!');
+                } else {
+                    console.log('일반회원 로그인 되었습니다!');
+                }
+                return res
+                    .cookie('x_auth', userToken)
+                    .clearCookie('reset_auth')
+                    .status(200)
+                    .json(user);
+                // loginSuccess: true,
+                // userId: user._id,
+                // isAdmin: user.isAdmin,
+                // isCertified: user.isCertified,
+                // token: userToken,
+                // isActivated: user.isActivated,
+            } catch (err) {
+                res.json({ loginSuccess: false, err: '토큰 오류' });
+            }
+        },
+    );
 };
 
 exports.logout = (req, res) => {
@@ -387,13 +397,15 @@ exports.logout = (req, res) => {
     }
     User.findOneAndUpdate(
         { _id: req.user._id },
-        // req.user.isActivated - 1
-        { token: ' ', resetPasswordToken: ' ' },
+        {
+            token: ' ',
+            resetPasswordToken: ' ',
+        },
         // { $set: { token: '' } },
         (err, user) => {
             if (err) return res.json({ logoutSuccess: false, err });
-            // res.clearCookie('x_auth');
-            console.log(user._id, ' : 로그아웃 되었습니다!');
+            console.log('로그아웃 되었습니다! : ', user._id);
+            user.decrementActivated();
             return res
                 .clearCookie('x_auth')
                 .clearCookie('connect.sid') //구글 로그인할때 생기는데 왜생기냐?
@@ -407,24 +419,31 @@ exports.logout = (req, res) => {
     // console.log('로그아웃 되었습니다!');
 };
 
+exports.uploadImg = (req, res) => {
+    // console.log('mac : ', mac);
+
+    return res.send();
+};
+exports.test = (req, res) => {
+    const mac = macaddress.one((err, mac) => {});
+    console.log('mac : ', mac);
+
+    User.findOne({ email: req.user.email }, (err, user) => {
+        // if (user) {
+        //     return res.json({ data: user });
+        // }
+        user.macTest('mac test', mac);
+        console.log(user.tests);
+        return res.json({ data: user });
+    });
+};
 // exports.test = (req, res) => {
-//     let id = 'test_1';
-//     const token = jwt.sign({ id: id }, process.env.JWT_SECRET_KEY, {
-//         expiresIn: '6000s',
-//     });
-//     console.log(id);
-//     console.log({ id });
-//     console.log(token);
-
-//     jwt.verify(token, process.env.JWT_SECRET_KEY, function (err, decoded) {
-//         console.log(decoded);
-//         // return user
-//         //     .findOne({ _id: decoded, token })
-//         //     .then(user => user)
-//         //     .catch(err => err);
-//     });
-
-//     return res.json({
-//         message: token,
-//     });
+//     User.findOneAndUpdate(
+//         { email: req.user.email },
+//         { tests: 'asdfasdf' },
+//         (err, user) => {
+//             // user.test();
+//             return res.json({ data: user });
+//         },
+//     );
 // };

@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const {
     register,
     getUsers,
@@ -12,8 +13,10 @@ const {
     resetPassword,
     certifyUser,
     test,
+    me,
+    uploadImg,
 } = require('../controllers/Users');
-
+const passport = require('passport');
 const { auth } = require('../middleware/auth');
 const router = express.Router();
 
@@ -29,6 +32,7 @@ router
 
     //회원가입 및 이메일인증 발송
     .post(auth, register);
+router.route('/me').get(auth, me);
 
 //이메일로 발송된 링크로 회원 인증
 router.route('/certify/:token').get(auth, certifyUser);
@@ -37,14 +41,22 @@ router.route('/auth').get(auth, (req, res) => {
     //auth 미들웨어를 통과한 상태 이므로
     //req.user에 user값을 넣어줬으므로
 
-    return res.status(200).json({
+    if (!req.user) {
+        return res.json({ message: '로그인 안되어 있습니다!' });
+    }
+    const user = req.user;
+
+    return res.json({
         _id: req.user._id,
-        // isAdmin: req.user.role === 09 ? false : true,
-        isAuth: true,
-        isAdmin: req.user.isAdmin,
-        isCertified: req.user.isCertified,
+        googleId: req.user.googleId,
+        naverId: req.user.naverId,
         email: req.user.email,
         name: req.user.name,
+        age: req.user.age,
+        isAdmin: req.user.isAdmin,
+        isActivated: req.user.isActivated,
+        isCertified: req.user.isCertified,
+        date: req.user.date,
     });
 });
 
@@ -58,6 +70,75 @@ router
     .patch(auth, patchUser);
 
 router.route('/login').post(auth, login);
+
+router
+    .route('/auth/google')
+    .get(passport.authenticate('google', { scope: ['profile', 'email'] }));
+// .get(passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.route('/auth/google/callback').get(
+    passport.authenticate('google', {
+        // successRedirect: '/auth/google/success',
+        failureRedirect: '/login',
+    }),
+    // successRedirect(),
+    async (req, res) => {
+        const user = req.user;
+        try {
+            const expiresTime = '1h'; // 1시간 후 토큰 만료로 자동 로그아웃?
+            const userToken = await user.generateToken(
+                process.env.JWT_SECRET_KEY3,
+                expiresTime,
+            );
+            if (user.isAdmin) {
+                console.log('Admin 로그인 되었습니다!');
+            } else {
+                console.log('일반회원 로그인 되었습니다!');
+            }
+            // console.log(userToken);
+            return res
+                .cookie('x_auth', userToken)
+                .clearCookie('reset_auth')
+                .redirect('/users/auth');
+        } catch (err) {
+            res.json({ loginSuccess: false, err: '토큰 오류' });
+        }
+    },
+);
+
+router
+    .route('/auth/naver')
+    .get(passport.authenticate('naver', null), (req, res) => {
+        console.log('/users/auth/naver');
+    });
+router.route('/auth/naver/callback').get(
+    passport.authenticate('naver', {
+        failureRedirect: '/login',
+    }),
+    async (req, res) => {
+        const user = req.user;
+        try {
+            const expiresTime = '1h'; // 1시간 후 토큰 만료로 자동 로그아웃?
+            const userToken = await user.generateToken(
+                process.env.JWT_SECRET_KEY3,
+                expiresTime,
+            );
+            if (user.isAdmin) {
+                console.log('Admin 로그인 되었습니다!');
+            } else {
+                console.log('일반회원 로그인 되었습니다!');
+            }
+            // console.log(userToken);
+            return res
+                .cookie('x_auth', userToken)
+                .clearCookie('reset_auth')
+                .redirect('/users/auth');
+        } catch (err) {
+            res.json({ loginSuccess: false, err: '토큰 오류' });
+        }
+    },
+);
+
 router.route('/logout').get(auth, logout);
 // router.get('/logout', auth, logout);
 
@@ -67,6 +148,23 @@ router.route('/reset').post(sendingResetEmail);
 router.route('/modify').get(auth, issuingResetPasswordToken);
 // 비밀번호 수정
 router.route('/reset/:token').post(resetPassword);
+
+router.route('/test').get(auth, test);
+
+const upload = multer({
+    dest: 'img',
+    limits: {
+        fileSize: 10000000,
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+            return cb(new Error('plz upload an image (jpg, jpeg, png)'));
+        }
+        cb(undefined, true);
+    },
+});
+
+router.route('/uploadImg').post(upload.single('img'), uploadImg);
 
 //회원 인증 메일 보내기
 // router.route('/certify/:certifyToken').get(sendingCertifiedMail);

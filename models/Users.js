@@ -63,6 +63,12 @@ const UserSchema = new mongoose.Schema({
         default: 0,
         min: 0,
     },
+    tests: [
+        {
+            test: { type: String },
+            mac: { type: String, unique: true },
+        },
+    ],
 });
 
 //
@@ -81,7 +87,8 @@ const UserSchema = new mongoose.Schema({
 UserSchema.pre('save', function (next) {
     let user = this;
     if (user.isModified('password')) {
-        bcrypt.genSalt(10, function (err, salt) {
+        const saltFactor = 10;
+        bcrypt.genSalt(saltFactor, function (err, salt) {
             if (err) return next(err);
             bcrypt.hash(user.password, salt, function (err, hash) {
                 if (err) return next(err);
@@ -101,9 +108,7 @@ UserSchema.methods.comparePassword = function (candidatePassword) {
 //
 UserSchema.methods.generateToken = function (secret_key, expiresTime) {
     // 첫번째 파라미터는 토큰에 넣을 데이터, 두번째는 비밀 키, 세번째는 옵션, 네번째는 콜백함수
-    // const token = jwt.sign(this._id.toHexString(), secret_key, {
-    //     // expiresIn: '60',
-    // });
+
     const token = jwt.sign({ _id: this._id.toHexString() }, secret_key, {
         expiresIn: expiresTime,
     });
@@ -127,7 +132,6 @@ UserSchema.methods.generateResetPasswordToken = function (
     secret_key,
     expresTime,
 ) {
-    expresTime;
     this.resetPasswordToken = jwt.sign(
         { _id: this._id.toHexString() },
         secret_key,
@@ -138,4 +142,20 @@ UserSchema.methods.generateResetPasswordToken = function (
         .then(user => user.resetPasswordToken)
         .catch(err => err);
 };
+
+UserSchema.methods.incrementActivated = function () {
+    this.isActivated = this.isActivated + 1;
+    this.save();
+};
+UserSchema.methods.decrementActivated = function () {
+    this.isActivated = this.isActivated - 1;
+    this.save();
+};
+
+UserSchema.methods.macTest = function (text, mac) {
+    this.tests.push({ test: text, mac: mac });
+    // this.tests.push({ 1: 'asdddf', 2: '2' });
+    this.save();
+};
+
 module.exports = mongoose.model('User', UserSchema);

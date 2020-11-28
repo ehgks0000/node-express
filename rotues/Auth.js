@@ -9,34 +9,23 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 router.route('/').get(auth, (req, res) => {
-    const {
-        _id,
-        googleId,
-        naverId,
-        email,
-        name,
-        age,
-        isAdmin,
-        isActivated,
-        isCertified,
-        date,
-    } = req.user;
+    if (!req.user) {
+        return res.json({ message: '로그인 안되어 있습니다!' });
+    }
+
     return res.json({
-        _id,
-        googleId,
-        naverId,
-        email,
-        name,
-        age,
-        isAdmin,
-        isActivated,
-        isCertified,
-        date,
+        _id: req.user._id,
+        googleId: req.user.googleId,
+        naverId: req.user.naverId,
+        email: req.user.email,
+        name: req.user.name,
+        age: req.user.age,
+        isAdmin: req.user.isAdmin,
+        isActivated: req.user.isActivated,
+        isCertified: req.user.isCertified,
+        date: req.user.date,
     });
 });
-
-router.route('/login').post(auth, login);
-router.route('/logout').get(auth, logout);
 
 router
     .route('/google')
