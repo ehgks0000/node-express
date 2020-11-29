@@ -1,6 +1,6 @@
 const User = require('../models/Users');
 const macaddress = require('node-macaddress');
-const multer = require('multer');
+const sharp = require('sharp');
 const { sendingMail } = require('../lib/nodemailer');
 
 exports.register = async (req, res) => {
@@ -419,10 +419,38 @@ exports.logout = (req, res) => {
     // console.log('로그아웃 되었습니다!');
 };
 
-exports.uploadImg = (req, res) => {
-    // console.log('mac : ', mac);
+exports.uploadImg = async (req, res) => {
+    // console.log(req.file);
+    const buffer = await sharp(req.file.buffer)
+        .resize({ width: 250, height: 250 })
+        .png()
+        .toBuffer();
+
+    req.user.avatar = buffer;
+    await req.user.save();
 
     return res.send();
+};
+
+exports.deleteImg = async (req, res) => {
+    req.user.avatar = undefined;
+    await req.user.save();
+    return res.send();
+};
+
+exports.getImg = async (req, res) => {
+    const id = req.params.id;
+    try {
+        const user = await User.findById(id);
+        if (!user || !user.avatar) {
+            throw new Error();
+        }
+        res.set('Content-Type', 'image/png');
+        return res.send(user.avatar);
+        // res.set('Content-Type', 'application/json');
+    } catch (e) {
+        return res.status(404).send;
+    }
 };
 exports.test = (req, res) => {
     const mac = macaddress.one((err, mac) => {});

@@ -7,7 +7,7 @@ const auth = (req, res, next) => {
         console.log('auth : 로그인 안되어 있습니다!');
         return next();
     }
-    console.log('auth.js');
+    // console.log('auth.js');
     //토큰이 있으면 로그인 되어있는 상태
     User.findByToken(token, process.env.JWT_SECRET_KEY3)
         .then(user => {
@@ -20,7 +20,7 @@ const auth = (req, res, next) => {
             }
             req.token = token;
             req.user = user;
-            console.log('auth : ', req.user);
+            // console.log('auth : ', req.user);
             next();
         })
         .catch(err => {

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+// const { delete } = require('..');
 
 const UserSchema = new mongoose.Schema({
     email: {
@@ -43,6 +44,14 @@ const UserSchema = new mongoose.Schema({
     token: {
         type: String,
     },
+    //토큰 배열 어케하지? ㄱㄷ
+    tokens: [
+        {
+            token: {
+                type: String,
+            },
+        },
+    ],
     resetPasswordToken: {
         type: String,
     },
@@ -69,6 +78,9 @@ const UserSchema = new mongoose.Schema({
             mac: { type: String, unique: true },
         },
     ],
+    avatar: {
+        type: Buffer,
+    },
 });
 
 //
@@ -100,6 +112,17 @@ UserSchema.pre('save', function (next) {
         next();
     }
 });
+//검색 못하게 막는다 안보여줌 디비엔 있는데
+UserSchema.methods.toJSON = function () {
+    const user = this;
+    const userObject = user.toObject();
+
+    delete userObject.password;
+    delete userObject.token;
+    delete userObject.avatar;
+
+    return userObject;
+};
 //비밀번호 대조하는 함수
 UserSchema.methods.comparePassword = function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);

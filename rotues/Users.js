@@ -1,5 +1,5 @@
 const express = require('express');
-const multer = require('multer');
+const { upload } = require('../lib/multer');
 const {
     register,
     getUsers,
@@ -15,9 +15,13 @@ const {
     test,
     me,
     uploadImg,
+    deleteImg,
+    getImg,
 } = require('../controllers/Users');
 const passport = require('passport');
+const errorHandler = require('../middleware/error');
 const { auth } = require('../middleware/auth');
+const User = require('../models/Users');
 const router = express.Router();
 
 router
@@ -151,20 +155,15 @@ router.route('/reset/:token').post(resetPassword);
 
 router.route('/test').get(auth, test);
 
-const upload = multer({
-    dest: 'img',
-    limits: {
-        fileSize: 10000000,
-    },
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-            return cb(new Error('plz upload an image (jpg, jpeg, png)'));
-        }
-        cb(undefined, true);
-    },
-});
+router
+    .route('/uploadImg')
+    .post(auth, upload.single('img'), uploadImg, errorHandler)
+    .delete(auth, deleteImg);
 
-router.route('/uploadImg').post(upload.single('img'), uploadImg);
+//getImg 로 사용하면 왜안되?
+router.route('/:id/avatar').get(getImg);
+
+//미들웨어 사용, 보내기전 보낸후 사용 가능
 
 //회원 인증 메일 보내기
 // router.route('/certify/:certifyToken').get(sendingCertifiedMail);

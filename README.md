@@ -12,7 +12,7 @@ DB : MongoDB(& mongoose)
 -   bcrypt를 이용한 패스워드 해쉬화
 -   jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 -   nodemailer을 이용한 Gmail 이메일 발송
--   multer를 이용한 이미지 업로드
+-   multer를 이용한 이미지 업로드 && sharp를 이용한 이미지 크롭
 
 ## 주요 기능 (Router)
 
@@ -49,3 +49,7 @@ post 회원 비밀번호 수정(관리자가) : http://localhost:1337/users/rese
 patch 회원 정보 수정(관리자가, 패스워드 제외한) : localhost:1337/users/search/:userId
 
 post 회원 아바타 이미지 업로드 : localhost:1337/users/uploadImg
+
+delte 이미지 삭제 : localhost:1337/users/uploadImg
+
+get 회원 이미지 보기 : localhost:1337/users/:id/avatar
