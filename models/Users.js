@@ -158,7 +158,7 @@ UserSchema.statics.findByToken = function (token, secret_key) {
     });
 };
 
-UserSchema.methods.generateResetPasswordToken = function (
+UserSchema.methods.generateResetPasswordToken = async function (
     secret_key,
     expresTime,
 ) {
@@ -168,7 +168,7 @@ UserSchema.methods.generateResetPasswordToken = function (
         { expiresIn: expresTime },
     );
 
-    return this.save()
+    return await this.save()
         .then(user => user.resetPasswordToken)
         .catch(err => err);
 };

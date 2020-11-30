@@ -6,7 +6,7 @@ const {
     getUserById,
     deleteUser,
     patchUser,
-    issuingResetPasswordToken,
+    selfResetPassword,
     login,
     logout,
     logoutAll,
@@ -75,7 +75,7 @@ router
     //id값으로 특정 유저 수정 // 관리자만
     .patch(auth, patchUser);
 
-router.route('/login').post(login);
+router.route('/login').post(auth, login);
 
 router
     .route('/auth/google')
@@ -148,21 +148,19 @@ router.route('/auth/naver/callback').get(
 router.route('/logout').get(auth, logout);
 router.route('/logoutAll').get(auth, logoutAll);
 
-//비밀번호 까먹었을 떄 이메일로 토큰 발급
-router.route('/reset').post(sendingResetEmail);
-//로그인 상태의 회원 리셋 토큰 발급
-router.route('/modify').get(auth, issuingResetPasswordToken);
-// 비밀번호 수정
-router.route('/reset/:token').post(resetPassword);
+//로그인 상태의 회원이 패스워드 수정
+router.route('/modify').post(auth, selfResetPassword);
 
+// 패스워드 찾기 - 비밀번호 까먹었을 떄 이메일로 토큰 발급
+// 비밀번호 수정
+router.route('/reset').post(sendingResetEmail);
+router.route('/reset/:token').post(resetPassword);
 router.route('/finding').post(finding);
 
 router
     .route('/uploadImg')
     .post(auth, upload.single('img'), uploadImg, errorHandler)
     .delete(auth, deleteImg);
-
-//getImg 로 사용하면 왜안되?
 router.route('/:id/avatar').get(getImg);
 
 router.route('/test').get(auth, test);
