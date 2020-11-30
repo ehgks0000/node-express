@@ -247,6 +247,11 @@ exports.issuingResetPasswordToken = (req, res) => {
 //패스워드 수정
 //Node Mailer 사용하여 비밀번호 수정
 exports.sendingResetEmail = (req, res) => {
+    const { email, name } = req.body;
+    if (!email || !name) {
+        return res.status(400).send({ message: error });
+    }
+
     User.findOne({ email: req.body.email }, async (err, user) => {
         if (err || !user) {
             return res.json({
@@ -315,6 +320,24 @@ exports.resetPassword = async (req, res) => {
         });
     });
 };
+exports.finding = (req, res) => {
+    const { email, name } = req.body;
+    if (!req.body.email) {
+        return res.status(400).send();
+    }
+    User.findOne({ email: req.body.email }, (err, user) => {
+        if (err) {
+            return res.json({
+                loginSuccess: false,
+                message: '존재하지 않는 아이디입니다.',
+            });
+        }
+        return res.json({
+            message: '이메일 찾기 성공!',
+            email: user.email,
+        });
+    });
+};
 //
 exports.login = (req, res) => {
     console.log('로그인 접근');
@@ -352,36 +375,31 @@ exports.login = (req, res) => {
                     message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
                 });
             }
-            if (user.isActivated > 3) {
-                // 잘 작동하는데 만약 로그인 해놓고 토큰 만료가 된다면?
-                return res.json({
-                    message: '3개 이상 활성화',
-                });
-            }
-            // 비밀번호가 일치하면 Users 모델의 generateToken 함수로 토큰 생성 후 저장
+            // if (user.isActivated > 3) {
+            //     // 잘 작동하는데 만약 로그인 해놓고 토큰 만료가 된다면?
+            //     return res.json({
+            //         message: '3개 이상 활성화',
+            //     });
+            // }
             try {
                 const expiresTime = '1h'; // >> 토큰 만료시간되면 로그아웃이 되는데 isActivated 수는 안줄어든다
                 const userToken = await user.generateToken(
                     process.env.JWT_SECRET_KEY3,
                     expiresTime,
                 );
-                user.incrementActivated(); //로그인 시
+                user.isActivated = user.isActivated + 1; //로그인 시
+
                 if (user.isAdmin) {
                     console.log('Admin 로그인 되었습니다!');
                 } else {
                     console.log('일반회원 로그인 되었습니다!');
                 }
+                user.save();
                 return res
                     .cookie('x_auth', userToken)
                     .clearCookie('reset_auth')
                     .status(200)
-                    .json(user);
-                // loginSuccess: true,
-                // userId: user._id,
-                // isAdmin: user.isAdmin,
-                // isCertified: user.isCertified,
-                // token: userToken,
-                // isActivated: user.isActivated,
+                    .json({ loginSucess: true, user });
             } catch (err) {
                 res.json({ loginSuccess: false, err: '토큰 오류' });
             }
@@ -389,34 +407,42 @@ exports.login = (req, res) => {
     );
 };
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
     console.log('로그아웃 접근');
     // useFindAndModify
     if (!req.user) {
         return res.json({ message: '유저가 없음' });
     }
-    User.findOneAndUpdate(
-        { _id: req.user._id },
-        {
-            token: ' ',
-            resetPasswordToken: ' ',
-        },
-        // { $set: { token: '' } },
-        (err, user) => {
-            if (err) return res.json({ logoutSuccess: false, err });
-            console.log('로그아웃 되었습니다! : ', user._id);
-            user.decrementActivated();
-            return res
-                .clearCookie('x_auth')
-                .clearCookie('connect.sid') //구글 로그인할때 생기는데 왜생기냐?
-                .status(200)
-                .send({
-                    logoutSuccess: true,
-                    message: '로그아웃 되었습니다!',
-                });
-        },
-    );
-    // console.log('로그아웃 되었습니다!');
+
+    try {
+        req.user.tokens = req.user.tokens.filter(token => {
+            return token.token !== req.token;
+        });
+        req.user.isActivated = req.user.isActivated - 1;
+        await req.user.save();
+
+        res.clearCookie('x_auth').send('로그아웃 되었습니다!');
+    } catch (e) {
+        res.status(500).send('로그아웃 에러');
+    }
+};
+//로그인 되어있는 모든 토큰 삭제
+exports.logoutAll = async (req, res) => {
+    console.log('로그아웃 접근');
+    // useFindAndModify
+    if (!req.user) {
+        return res.json({ message: '유저가 없음' });
+    }
+
+    try {
+        req.user.tokens = undefined;
+        req.user.isActivated = 0;
+        await req.user.save();
+
+        res.clearCookie('x_auth').send('전체 로그아웃 되었습니다!');
+    } catch (e) {
+        res.status(500).send('로그아웃 에러');
+    }
 };
 
 exports.uploadImg = async (req, res) => {

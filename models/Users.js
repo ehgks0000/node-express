@@ -41,9 +41,9 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: Date.now,
     },
-    token: {
-        type: String,
-    },
+    // token: {
+    //     type: String,
+    // },
     //토큰 배열 어케하지? ㄱㄷ
     tokens: [
         {
@@ -118,7 +118,7 @@ UserSchema.methods.toJSON = function () {
     const userObject = user.toObject();
 
     delete userObject.password;
-    delete userObject.token;
+    delete userObject.tokens;
     delete userObject.avatar;
 
     return userObject;
@@ -129,23 +129,30 @@ UserSchema.methods.comparePassword = function (candidatePassword) {
 };
 
 //
-UserSchema.methods.generateToken = function (secret_key, expiresTime) {
+UserSchema.methods.generateToken = async function (secret_key, expiresTime) {
     // 첫번째 파라미터는 토큰에 넣을 데이터, 두번째는 비밀 키, 세번째는 옵션, 네번째는 콜백함수
-
+    const user = this;
     const token = jwt.sign({ _id: this._id.toHexString() }, secret_key, {
         expiresIn: expiresTime,
     });
-    this.token = token;
-    return this.save()
-        .then(user => user.token)
-        .catch(err => err);
+
+    // user.token = token;
+    //concat 대신 push는 왜 안될까
+
+    user.tokens = user.tokens.concat({ token: token });
+
+    await user.save();
+    return token;
+    // return user.save()
+    //     .then(user => user.token)
+    //     .catch(err => err);
 };
 // statics와 methods의 차이 전자는 모델 자체를 가리키고 후자는 데이터를 가리킨다
 UserSchema.statics.findByToken = function (token, secret_key) {
-    let user = this;
+    const user = this;
     return jwt.verify(token, secret_key, function (err, decoded) {
         return user
-            .findOne({ _id: decoded, token })
+            .findOne({ _id: decoded, 'tokens.token': token })
             .then(user => user)
             .catch(err => err);
     });
@@ -164,15 +171,6 @@ UserSchema.methods.generateResetPasswordToken = function (
     return this.save()
         .then(user => user.resetPasswordToken)
         .catch(err => err);
-};
-
-UserSchema.methods.incrementActivated = function () {
-    this.isActivated = this.isActivated + 1;
-    this.save();
-};
-UserSchema.methods.decrementActivated = function () {
-    this.isActivated = this.isActivated - 1;
-    this.save();
 };
 
 UserSchema.methods.macTest = function (text, mac) {

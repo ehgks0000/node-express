@@ -24,6 +24,8 @@ get naver 로그인 : http://localhost:1337/auth/naver/
 
 get 로그아웃 : http://localhost:1337/users/logout
 
+get 전체 로그아웃 : http://localhost:1337/users/logoutAll
+
 post 회원가입 : localhost:1337/users
 
 get 회원가입 인증 메일 발송 : http://localhost:1337/users/certify/:token
@@ -39,6 +41,8 @@ patch 회원 수정 : http://localhost:1337/users/
 get 전체회원 검색 : localhost:1337/users
 
 get 특정 회원 검색 : localhost:1337/users/search/:userId
+
+post 아이디(이메일) 찾기 : localhost:1337/users/finding
 
 post 패스워드 초기화 메일 발송 : http://localhost:1337/users/reset
 

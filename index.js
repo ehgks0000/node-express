@@ -17,13 +17,16 @@ connectDB();
 const app = express();
 app.use(morgan('combined', { stream }));
 
-// google oauth2 설정 중 passport express-session passport-google-oauth20
+//  express-session
 app.use(
-    session({ secret: 'Mysecret', resave: false, saveUninitialized: true }),
+    session({
+        secret: process.env.EXPRESS_SESSION,
+        resave: false,
+        saveUninitialized: true,
+    }),
 );
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use(
     cors(),
     // cors({
@@ -37,11 +40,9 @@ app.use(bodyparser.json());
 app.use(cookieparser());
 app.use('/users', usersRoute);
 // app.use('/auth', authRoute);
-
 // app.use(errorHandler);
 
 const port = process.env.PORT || 1337;
-
 app.listen(port, () => {
     console.log('server is open', port);
 });
@@ -51,7 +52,7 @@ module.exports = app;
 // CRUD create read update delete
 
 //todos
-//isActivated , user image upload ,
+//isActivated ,
 
 //error : 유저 동시접속(여러 기기 접속) 어떻게 관리?
 // user 모델에 배열로 mac과 토큰 입력으로
