@@ -4,18 +4,17 @@ const memoSchema = new mongoose.Schema({
   text: {
     type: String,
     required: true,
+    trim: true,
     // ref: true,
+  },
+  completed: { type: String, required: true, default: false },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User',
   },
 });
 
-// memoSchema.pre('save', function (next) {
-//   const memo = this;
-//   if (memo.isModified('text')) {
-//     next();
-//   } else {
-//     next();
-//   }
-// });
 memoSchema.methods.createMemo = function (text) {
   const memo = new this({
     text: text,
