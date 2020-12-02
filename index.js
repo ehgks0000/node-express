@@ -4,6 +4,7 @@ const cors = require('cors');
 const passport = require('./lib/passport');
 const connectDB = require('./db');
 const usersRoute = require('./rotues/Users');
+const memosRoute = require('./rotues/Memos');
 const errorHandler = require('./middleware/error');
 const bodyparser = require('body-parser');
 const cookieparser = require('cookie-parser');
@@ -19,32 +20,33 @@ app.use(morgan('combined', { stream }));
 
 //  express-session
 app.use(
-    session({
-        secret: process.env.EXPRESS_SESSION,
-        resave: false,
-        saveUninitialized: true,
-    }),
+  session({
+    secret: process.env.EXPRESS_SESSION,
+    resave: false,
+    saveUninitialized: true,
+  }),
 );
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(
-    cors(),
-    // cors({
-    //     origin: true,
-    //     credentials: true,
-    // }),
+  cors(),
+  // cors({
+  //     origin: true,
+  //     credentials: true,
+  // }),
 );
 
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cookieparser());
 app.use('/users', usersRoute);
+app.use('/memos', memosRoute);
 // app.use('/auth', authRoute);
 // app.use(errorHandler);
 
 const port = process.env.PORT || 1337;
 app.listen(port, () => {
-    console.log('server is open', port);
+  console.log('server is open', port);
 });
 
 module.exports = app;
