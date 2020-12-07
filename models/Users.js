@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+const Memo = require('./Memos');
 // const { delete } = require('..');
 
 const UserSchema = new mongoose.Schema({
@@ -72,12 +72,12 @@ const UserSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  tests: [
-    {
-      test: { type: String },
-      mac: { type: String, unique: true },
-    },
-  ],
+  //   tests: [
+  //     {
+  //       test: { type: String },
+  //       mac: { type: String, unique: true },
+  //     },
+  //   ],
   avatar: {
     type: Buffer,
   },
@@ -102,7 +102,7 @@ UserSchema.virtual('memos', {
 //페스워드 들어가기 전 해싱됨
 // 화살표 함수가 this 범위를 바꿔서 오류
 UserSchema.pre('save', function (next) {
-  let user = this;
+  const user = this;
   if (user.isModified('password')) {
     const saltFactor = 10;
     bcrypt.genSalt(saltFactor, function (err, salt) {
@@ -114,6 +114,16 @@ UserSchema.pre('save', function (next) {
       });
     });
   } else {
+    next();
+  }
+});
+
+UserSchema.pre('remove', async function (next) {
+  const user = this;
+  try {
+    await Memo.deleteMany({ userId: user._id });
+    next();
+  } catch (e) {
     next();
   }
 });

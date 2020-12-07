@@ -8,6 +8,14 @@ exports.register = async (req, res) => {
     return;
   }
   console.log('회원 가입 접근');
+  const bodys = Object.keys(req.body);
+  const allowBodys = ['email', 'name', 'password'];
+  const validate = bodys.every(body => {
+    allowBodys.includes(body);
+  });
+  if (!validate) {
+    return res.status(404).send();
+  }
   //회원 가입시 인증 메일 발송
   //body parser필요 없으면 undefined 출력됨
   const user = new User(req.body);
@@ -127,14 +135,11 @@ exports.deleteUser = async (req, res) => {
   //미들웨어 auth에서 유저 id를 받아야 삭제 가능
   // const userId = req.user._id;
   try {
-    const removedUser = await User.deleteOne({ _id: req.user._id });
-    console.log(`회원님의 아이디가 삭제 되었습니다! ${req.user.userId}`);
-    res.json({
-      message: '아이디가 삭제 되었습니다!',
-      data: removedUser,
-    });
-  } catch (err) {
-    res.json({ message: err });
+    await req.user.remove();
+    // const removedUser = await User.deleteOne({ _id: req.user._id });
+    res.send(req.user);
+  } catch (e) {
+    res.status(500).send({ message: e });
   }
 };
 
@@ -334,33 +339,21 @@ exports.login = (req, res) => {
           message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
         });
       }
-      // if (user.isActivated > 3) {
-      //     // 잘 작동하는데 만약 로그인 해놓고 토큰 만료가 된다면?
-      //     return res.json({
-      //         message: '3개 이상 활성화',
-      //     });
-      // }
+
       try {
         const expiresTime = '1h'; // >> 토큰 만료시간되면 로그아웃이 되는데 isActivated 수는 안줄어든다
         const userToken = await user.generateToken(
           process.env.JWT_SECRET_KEY3,
           expiresTime,
         );
-        user.isActivated = user.isActivated + 1; //로그인 시
 
-        if (user.isAdmin) {
-          console.log('Admin 로그인 되었습니다!');
-        } else {
-          console.log('일반회원 로그인 되었습니다!');
-        }
-        user.save();
         return res
           .cookie('x_auth', userToken)
           .clearCookie('reset_auth')
           .status(200)
           .json({ loginSucess: true, user });
       } catch (err) {
-        res.json({ loginSuccess: false, err: '토큰 오류' });
+        return res.json({ loginSuccess: false, err: '토큰 오류' });
       }
     },
   );
@@ -377,7 +370,7 @@ exports.logout = async (req, res) => {
     req.user.tokens = req.user.tokens.filter(token => {
       return token.token !== req.token;
     });
-    req.user.isActivated = req.user.isActivated - 1;
+    // req.user.isActivated = req.user.isActivated - 1;
     await req.user.save();
 
     res.clearCookie('x_auth').send('로그아웃 되었습니다!');

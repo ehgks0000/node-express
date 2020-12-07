@@ -26,17 +26,15 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 const User = require('../models/Users');
 
+//유저 검색
+// auth 미들웨어로 req에 user 갖고있다면(로그인 돼있다면) 삭제가능
+//회원 스스로 데이터 수정
+//회원가입 및 이메일인증 발송
 router
-  // users/
   .route('/')
-  //유저 검색
   .get(getUsers)
-  // auth 미들웨어로 req에 user 갖고있다면(로그인 돼있다면) 삭제가능
   .delete(auth, deleteUser)
-  //회원 스스로 데이터 수정
   .patch(auth, patchUser)
-
-  //회원가입 및 이메일인증 발송
   .post(auth, register);
 router.route('/me').get(auth, me);
 
@@ -66,15 +64,16 @@ router.route('/auth').get(auth, (req, res) => {
   });
 });
 
+//id값으로 특정 유저 검색
+//id값으로 특정 유저 삭제 //관리자만
+//id값으로 특정 유저 수정 // 관리자만
 router
   .route('/search/:userId')
-  //id값으로 특정 유저 검색
   .get(auth, getUserById)
-  //id값으로 특정 유저 삭제 //관리자만
   .delete(auth, deleteUser)
-  //id값으로 특정 유저 수정 // 관리자만
   .patch(auth, patchUser);
 
+// router.route('/login').post(login);
 router.route('/login').post(auth, login);
 
 router
