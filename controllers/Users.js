@@ -180,8 +180,8 @@ exports.patchUser = async (req, res) => {
 
   //미들웨어 auth에서 유저 id를 받아야 수정가능
   try {
-    req.user.name = req.body?.name;
-    req.user.age = req.body?.age;
+    req.user.name = req.body.name;
+    req.user.age = req.body.age;
     await req.user.save();
     // const updatedUser = await User.updateOne(
     //     //회원 자기자신 수정하기
