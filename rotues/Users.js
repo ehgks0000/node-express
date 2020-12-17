@@ -26,6 +26,8 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 const User = require('../models/Users');
 
+// const prod = process.env.NODE_ENV === 'production';
+const prod_Url = 'https://node-express-tutorials.herokuapp.com';
 //유저 검색
 // auth 미들웨어로 req에 user 갖고있다면(로그인 돼있다면) 삭제가능
 //회원 스스로 데이터 수정
@@ -104,7 +106,7 @@ router.route('/auth/google/callback').get(
       return res
         .cookie('x_auth', userToken)
         .clearCookie('reset_auth')
-        .redirect('/users/auth');
+        .redirect(`${prod_Url}/users/auth`);
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }
@@ -137,7 +139,7 @@ router.route('/auth/naver/callback').get(
       return res
         .cookie('x_auth', userToken)
         .clearCookie('reset_auth')
-        .redirect('/users/auth');
+        .redirect(`${prod_Url}/users/auth`);
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }
