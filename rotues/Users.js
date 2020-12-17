@@ -86,7 +86,7 @@ router
 router.route('/auth/google/callback').get(
   passport.authenticate('google', {
     // successRedirect: '/auth/google/success',
-    failureRedirect: '/login',
+    failureRedirect: `${prod_Url}`,
   }),
   // successRedirect(),
   async (req, res) => {
@@ -120,7 +120,7 @@ router
   });
 router.route('/auth/naver/callback').get(
   passport.authenticate('naver', {
-    failureRedirect: '/login',
+    failureRedirect: `${prod_Url}`,
   }),
   async (req, res) => {
     const user = req.user;
