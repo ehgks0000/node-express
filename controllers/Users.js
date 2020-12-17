@@ -44,7 +44,8 @@ exports.register = async (req, res) => {
                         Your info :
                         Name : ${name}
                         Email : ${email}
-                        Please click this link if you want to be certified. : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
+                        Please click this link if you want to be certified. : https://node-express-tutorials.herokuapp.com/users/certify/${certifyToken}`,
+            // Please click this link if you want to be certified. : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
           };
 
           console.log('회원 인증 토큰 : ', certifyToken);

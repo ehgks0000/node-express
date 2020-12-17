@@ -1,7 +1,10 @@
+require('dotenv').config({ path: './config/config.env' });
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
-const passport = require('./lib/passport');
+const passport = require('passport');
+const passportConfig = require('./lib/passport');
+passportConfig();
 const connectDB = require('./db');
 const usersRoute = require('./rotues/Users');
 const memosRoute = require('./rotues/Memos');
@@ -11,8 +14,6 @@ const cookieparser = require('cookie-parser');
 
 const morgan = require('morgan');
 const { stream } = require('./lib/winstons');
-
-require('dotenv').config({ path: './config/config.env' });
 
 connectDB();
 const app = express();
@@ -39,6 +40,9 @@ app.use(
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cookieparser());
+app.get('/', (req, res) => {
+  res.send({ asdfasdf });
+});
 app.use('/users', usersRoute);
 app.use('/memos', memosRoute);
 // app.use('/auth', authRoute);
