@@ -49,6 +49,7 @@ router.route('/auth').get(auth, (req, res) => {
   //req.user에 user값을 넣어줬으므로
 
   if (!req.user) {
+    console.log('auth : 로그인 안되어 있습니다!');
     return res.json({ message: '로그인 안되어 있습니다!' });
   }
   const user = req.user;
@@ -77,7 +78,7 @@ router
   .patch(auth, patchUser);
 
 // router.route('/login').post(login);
-router.route('/login').post(auth, login);
+router.route('/login').post(login);
 
 router
   .route('/auth/google')
