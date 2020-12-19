@@ -12,7 +12,7 @@ const auth = (req, res, next) => {
     User.findByToken(token, process.env.JWT_SECRET_KEY3).then(user => {
       if (!user) {
         console.log('auth : 로그인 안되어 있습니다!');
-        return res.clearCookie('x_auth');
+        res.clearCookie('x_auth');
       }
       req.token = token;
       req.user = user;
