@@ -18,7 +18,8 @@ const morgan = require('morgan');
 const { stream } = require('./lib/winstons');
 
 connectDB();
-// const prod = process.env.NODE_ENV === "production" ? ;
+// const dev = process.env.NODE_ENV !== "production" ;
+// const prod = process.env.NODE_ENV === "production" ;
 const app = express();
 app.use(morgan('combined', { stream }));
 
@@ -62,7 +63,7 @@ app.use('/memos', memosRoute);
 const port = process.env.NODE_ENV === 'production' ? process.env.PORT : 1337;
 app.listen(port, () => {
   console.log('server is open', port);
-  console.log(process.env.NODE_ENV);
+  //   console.log(process.env.NODE_ENV);
 });
 
 module.exports = app;
