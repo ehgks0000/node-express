@@ -81,4 +81,13 @@ patch 메모 수정 by ID : {{url}}/memos/:memoId
 ## aws ec2 완료
 
 - http://api.expresstest.ml
-  > freenom의 무료 도메인을 aws Route 53에 연결
+
+freenom의 무료 도메인 할당
+
+aws Route 53 도메인 연결
+
+- http://api.expresstest.ml //https 프로토콜
+
+SSL/TLS AWS Certiticate Manager(ACM)에서 인증서 발급
+
+ec2 Elastic Load Balancing 및 aws Route 53 도메인 연결
