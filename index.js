@@ -53,6 +53,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cookieparser());
 app.get('/', (req, res) => {
+  console.log('서버홈이 작동 되었습니다');
   res.send({ message: '서버 홈이 작동되었습니다!' });
 });
 app.use('/users', usersRoute);

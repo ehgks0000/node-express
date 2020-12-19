@@ -72,6 +72,13 @@ get 메모 찾기 by ID : {{url}}/memos/:memoId
 
 patch 메모 수정 by ID : {{url}}/memos/:memoId
 
-## 배포 Heroku
+## 배포
+
+### Heroku 완료
 
 - https://node-express-tutorials.herokuapp.com
+
+## aws ec2 완료
+
+- http://api.expresstest.ml
+  > freenom의 무료 도메인을 aws Route 53에 연결
