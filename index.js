@@ -58,7 +58,8 @@ app.get('/', (req, res) => {
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
     (req.connection.socket ? req.connection.socket.remoteAddress : null);
-  console.log('서버홈이 작동 되었습니다', ip);
+  const agent = req.headers('User-Agent') || null;
+  console.log('서버홈이 작동 되었습니다', ip, agent);
   res.send({ message: '서버 홈이 작동되었습니다!' });
 });
 app.use('/users', usersRoute);
