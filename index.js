@@ -1,11 +1,13 @@
 require('dotenv').config({ path: './config/config.env' });
 const express = require('express');
 const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
 const cors = require('cors');
 const passport = require('passport');
 const passportConfig = require('./lib/passport');
 passportConfig();
 const connectDB = require('./db');
+// const connectDB = require('./db')(session);
 const usersRoute = require('./rotues/Users');
 const memosRoute = require('./rotues/Memos');
 const errorHandler = require('./middleware/error');
@@ -16,12 +18,21 @@ const morgan = require('morgan');
 const { stream } = require('./lib/winstons');
 
 connectDB();
+// const prod = process.env.NODE_ENV === "production" ? ;
 const app = express();
 app.use(morgan('combined', { stream }));
 
 //  express-session
 app.use(
   session({
+    cookie: {
+      secure: true,
+      maxAge: 60000,
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
+    // store: new connectDB(),
     secret: process.env.EXPRESS_SESSION,
     resave: false,
     saveUninitialized: true,
@@ -41,16 +52,17 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cookieparser());
 app.get('/', (req, res) => {
-  res.send({ asdfasdf });
+  res.send({ message: '서버 홈이 작동되었습니다!' });
 });
 app.use('/users', usersRoute);
 app.use('/memos', memosRoute);
 // app.use('/auth', authRoute);
 // app.use(errorHandler);
 
-const port = process.env.PORT || 1337;
+const port = process.env.NODE_ENV === 'production' ? process.env.PORT : 1337;
 app.listen(port, () => {
   console.log('server is open', port);
+  console.log(process.env.NODE_ENV);
 });
 
 module.exports = app;
@@ -62,3 +74,11 @@ module.exports = app;
 
 //error : 유저 동시접속(여러 기기 접속) 어떻게 관리?
 // user 모델에 배열로 mac과 토큰 입력으로
+
+// cross-env NODE_ENV=production PORT=80 pm2 start index.js
+// npm rebuild bcrypt --build-from-source
+// npm i -g node-pre-gyp
+
+//Warning: connect.session() MemoryStore is not
+// 0|index    | designed for a production environment, as it will leak
+// 0|index    | memory, and will not scale past a single process.
