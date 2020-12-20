@@ -2,8 +2,11 @@ const User = require('../models/Users');
 const macaddress = require('node-macaddress');
 const sharp = require('sharp');
 const { sendingMail } = require('../lib/nodemailer');
+const prod_url = process.env.EC2_PRODUCTION_URL_HTTPS;
 
 exports.register = async (req, res) => {
+  const { name, email } = req.body;
+
   if (req.user) {
     return;
   }
@@ -29,7 +32,6 @@ exports.register = async (req, res) => {
 
       console.log('회원가입 인증메일 발송! : ', doc);
 
-      const { name, email } = req.body;
       const expiresTime = '1h';
       user
         .generateToken(process.env.JWT_SECRET_KEY3, expiresTime)
@@ -44,7 +46,7 @@ exports.register = async (req, res) => {
                         Your info :
                         Name : ${name}
                         Email : ${email}
-                        Please click this link if you want to be certified. : https://node-express-tutorials.herokuapp.com/users/certify/${certifyToken}`,
+                        Please click this link if you want to be certified. : ${prod_url}/users/certify/${certifyToken}`,
             // Please click this link if you want to be certified. : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
           };
 
@@ -310,7 +312,7 @@ exports.finding = (req, res) => {
 };
 //
 exports.login = (req, res) => {
-  console.log('로그인 접근');
+  //   console.log('로그인 접근');
   if (req.user) {
     return res.status(200).json({ alreadyLoggedIn: true, user: req.user });
   }
@@ -335,6 +337,7 @@ exports.login = (req, res) => {
         // return console.log('비밀번호가 매치하지 않습니다!', password);
       }
       if (!user.isCertified) {
+        console.log('이메일을 인증하세요!', email);
         return res.json({
           loginSuccess: false,
           message: '인증되지 않았습니다! 이메일을 확인 해주세요!',
@@ -347,7 +350,7 @@ exports.login = (req, res) => {
           process.env.JWT_SECRET_KEY3,
           expiresTime,
         );
-
+        console.log('로그인 되었습니다!', email);
         return res
           .cookie('x_auth', userToken)
           .clearCookie('reset_auth')
@@ -361,7 +364,6 @@ exports.login = (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  console.log('로그아웃 접근');
   // useFindAndModify
   if (!req.user) {
     return res.json({ message: '유저가 없음' });
@@ -373,7 +375,7 @@ exports.logout = async (req, res) => {
     });
     // req.user.isActivated = req.user.isActivated - 1;
     await req.user.save();
-
+    console.log('로그아웃 되었습니다!', req.user.email);
     res.clearCookie('x_auth').send('로그아웃 되었습니다!');
   } catch (e) {
     res.status(500).send('로그아웃 에러');

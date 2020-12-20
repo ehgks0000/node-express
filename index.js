@@ -60,7 +60,7 @@ app.get('/', (req, res) => {
     (req.connection.socket ? req.connection.socket.remoteAddress : null);
   //   const agent = req.headers['User-Agent'];
   const agent = req.get('User-Agent') || null;
-  if (agent !== 'ELB-HealthCecker/2.0') {
+  if (agent !== 'ELB-HealthChecker/2.0') {
     console.log('서버홈이 작동 되었습니다', ip, agent);
   }
   res.send({ message: '서버 홈이 작동되었습니다!' });
