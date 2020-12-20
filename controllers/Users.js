@@ -75,31 +75,33 @@ exports.register = async (req, res) => {
   }
 };
 exports.certifyUser = async (req, res) => {
-    // console.log('회원 인증 접근');
-    const token = req.params.token;
-    User.findByToken(token, process.env.JWT_SECRET_KEY3)
-        .then(user => {
-        if (!user) {
-            // console.log('auth : 로그인 안되어 있습니다!');
-            return res.status(404).send();
-            // return res.clearCookie('x_auth');
-        }
-        // req.token = token;
-        user.isCertified = true;
-        await user.save();
-        console.log(`회원님의 이메일이 인증 되었습니다! ${user.email} : ${token}`);
-        return res.json({
-            message: '회원님의 이메일이 인증 되었습니다! ',
-            token: token,
-          });
-
-        })
-        .catch(err => {
-        //   console.log('auth : 로그인 안되어 있습니다!');
-        //   res.clearCookie('x_auth');
-            console.log('이메일 인증 오류');
-            return res.json({ message: err });
-        });
+  // console.log('회원 인증 접근');
+  const token = req.params.token;
+  User.findByToken(token, process.env.JWT_SECRET_KEY3)
+    .then(user => {
+      if (!user) {
+        // console.log('auth : 로그인 안되어 있습니다!');
+        return res.status(404).send();
+        // return res.clearCookie('x_auth');
+      }
+      // req.token = token;
+      user.isCertified = true;
+      user.save().then(() => {
+        console.log(
+          `회원님의 이메일이 인증 되었습니다! ${user.email} : ${token}`,
+        );
+      });
+      return res.json({
+        message: '회원님의 이메일이 인증 되었습니다! ',
+        token: token,
+      });
+    })
+    .catch(err => {
+      //   console.log('auth : 로그인 안되어 있습니다!');
+      //   res.clearCookie('x_auth');
+      console.log('이메일 인증 오류');
+      return res.json({ message: err });
+    });
 };
 // exports.certifyUser = async (req, res) => {
 //   console.log('회원 인증 접근');
