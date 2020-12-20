@@ -7,16 +7,24 @@ const prod_url = process.env.EC2_PRODUCTION_URL_HTTPS;
 exports.register = async (req, res) => {
   const { name, email } = req.body;
 
-  if (req.user) {
-    return;
-  }
-  console.log('회원 가입 접근');
+  //   if (req.user) {
+  //     return;
+  //   }
   const bodys = Object.keys(req.body);
-  const allowBodys = ['email', 'name', 'password'];
-  const validate = bodys.every(body => {
-    allowBodys.includes(body);
+  //   const bodys = ['email', 'password', 'name'];
+  const allowBodys = ['email', 'password', 'name'];
+
+  const validate = bodys.every(function (body) {
+    return allowBodys.includes(body);
   });
+  console.log(validate);
+
+  //   const validate = bodys.every(body => {
+  //     console.log(body);
+  //     allowBodys.includes(body);
+  //   });
   if (!validate) {
+    console.log('회원가입 필수 폼을 채우세요');
     return res.status(404).send();
   }
   //회원 가입시 인증 메일 발송
@@ -30,7 +38,7 @@ exports.register = async (req, res) => {
       }
       //
 
-      console.log('회원가입 인증메일 발송! : ', doc);
+      console.log('회원가입 인증메일 발송! : ', doc.email);
 
       const expiresTime = '1h';
       user
@@ -62,6 +70,7 @@ exports.register = async (req, res) => {
     // res.json(savedUser);
     // res 2개 이상 뿌려줘서 오류 발생
   } catch (err) {
+    console.log('회원가입 오류');
     return res.json({ message: 'err2' });
   }
 };
@@ -84,6 +93,7 @@ exports.certifyUser = async (req, res) => {
       token: token,
     });
   } catch (err) {
+    console.log('이메일 인증 오류');
     return res.json({ message: err });
   }
 };
@@ -383,7 +393,6 @@ exports.logout = async (req, res) => {
 };
 //로그인 되어있는 모든 토큰 삭제
 exports.logoutAll = async (req, res) => {
-  console.log('로그아웃 접근');
   // useFindAndModify
   if (!req.user) {
     return res.json({ message: '유저가 없음' });
@@ -393,6 +402,7 @@ exports.logoutAll = async (req, res) => {
     req.user.tokens = [];
     req.user.isActivated = 0;
     await req.user.save();
+    console.log('모든 기기에서 로그아웃 되었습니다!', req.user.email);
 
     res.clearCookie('x_auth').send('전체 로그아웃 되었습니다!');
   } catch (e) {

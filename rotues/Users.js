@@ -38,7 +38,7 @@ router
   .get(getUsers)
   .delete(auth, deleteUser)
   .patch(auth, patchUser)
-  .post(auth, register);
+  .post(register);
 router.route('/me').get(auth, me);
 
 //이메일로 발송된 링크로 회원 인증
