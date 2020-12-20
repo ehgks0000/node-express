@@ -75,28 +75,56 @@ exports.register = async (req, res) => {
   }
 };
 exports.certifyUser = async (req, res) => {
-  const token = req.params.token;
-  try {
-    const updatedUser = await User.updateOne(
-      //회원 자기자신 수정하기
-      { token: token },
-      {
-        $set: {
-          isCertified: true,
-          // password: req.body.password,
-        },
-      },
-    );
-    console.log(`회원님의 이메일이 인증 되었습니다! ${updatedUser} : ${token}`);
-    return res.json({
-      message: '회원님의 이메일이 인증 되었습니다! ',
-      token: token,
-    });
-  } catch (err) {
-    console.log('이메일 인증 오류');
-    return res.json({ message: err });
-  }
+    // console.log('회원 인증 접근');
+    const token = req.params.token;
+    User.findByToken(token, process.env.JWT_SECRET_KEY3)
+        .then(user => {
+        if (!user) {
+            // console.log('auth : 로그인 안되어 있습니다!');
+            return res.status(404).send();
+            // return res.clearCookie('x_auth');
+        }
+        // req.token = token;
+        user.isCertified = true;
+        await user.save();
+        console.log(`회원님의 이메일이 인증 되었습니다! ${user.email} : ${token}`);
+        return res.json({
+            message: '회원님의 이메일이 인증 되었습니다! ',
+            token: token,
+          });
+
+        })
+        .catch(err => {
+        //   console.log('auth : 로그인 안되어 있습니다!');
+        //   res.clearCookie('x_auth');
+            console.log('이메일 인증 오류');
+            return res.json({ message: err });
+        });
 };
+// exports.certifyUser = async (req, res) => {
+//   console.log('회원 인증 접근');
+//   const token = req.params.token;
+//   try {
+//     const updatedUser = await User.updateOne(
+//       //회원 자기자신 수정하기
+//       { token: token },
+//       {
+//         $set: {
+//           isCertified: true,
+//           // password: req.body.password,
+//         },
+//       },
+//     );
+//     console.log(`회원님의 이메일이 인증 되었습니다! ${updatedUser} : ${token}`);
+//     return res.json({
+//       message: '회원님의 이메일이 인증 되었습니다! ',
+//       token: token,
+//     });
+//   } catch (err) {
+//     console.log('이메일 인증 오류');
+//     return res.json({ message: err });
+//   }
+// };
 exports.getUsers = async (req, res) => {
   console.log('회원 전체검색 접근');
   try {
@@ -256,7 +284,7 @@ exports.sendingResetEmail = (req, res) => {
                 Your info :
                 Id : ${user._id}
                 Email : ${user.email}
-                Please click this link to change your password. : ${process.env.CLIENT_URL}/users/reset/${resetPasswordToken}`,
+                Please click this link to change your password. : ${prod_url}/users/reset/${resetPasswordToken}`,
       };
       sendingMail(options);
       // sendingMail(user._id, user.email,options, resetPasswordToken);
