@@ -4,11 +4,13 @@
 - http://api.expresstest.ml:80
 - https://expresstest.ml:443
 
+---
+
 ## 기술 스택
 
-Arcitechture : node.js && Express.js  
-DB : MongoDB (mongoose)
-서버 : AWS EC2 Ubuntu 20.04
+> Arcitechture : node.js && Express.js  
+> DB : MongoDB (mongoose)  
+> Server : AWS EC2 Ubuntu 20.04
 
 ## 라이브러리
 
@@ -18,64 +20,66 @@ DB : MongoDB (mongoose)
 - jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 - nodemailer을 이용한 Gmail 이메일 발송
 - multer를 이용한 이미지 업로드 && sharp를 이용한 이미지 크롭
-
 - pm2(process manager)로 CI/CD
+- iptable && iptable-persistents로로 예상치 못한 서버 종료시 자동시작
 
 ## 주요 기능 (Router)
 
 ### Users.js
 
-post 로그인 : {{url}}/users/login
+- post 로그인 : {{url}}/users/login
 
-get google 로그인 : {{url}}/auth/google/
+- get google 로그인 : {{url}}/auth/google/
 
-get naver 로그인 : {{url}}/auth/naver/
+- get naver 로그인 : {{url}}/auth/naver/
 
-get 로그아웃 : {{url}}/users/logout
+- get 로그아웃 : {{url}}/users/logout
 
-get 전체 로그아웃 : {{url}}/users/logoutAll
+- get 전체 로그아웃 : {{url}}/users/logoutAll
 
-post 회원가입 : {{url}}/users
+- post 회원가입 : {{url}}/users
 
-get 회원가입 인증 메일 발송 : {{url}}/users/certify/:token
+- get 회원가입 인증 메일 발송 : {{url}}/users/certify/:token
 
-del 회원 탈퇴 : {{url}}/users/
+- del 회원 탈퇴 : {{url}}/users/
 
-del 회원 삭제(관리자가) : {{url}}/users/search/:userId
+- del 회원 삭제(관리자가) : {{url}}/users/search/:userId
 
-get auth 확인 : {{url}}/auth
+- <del> get auth 확인 : {{url}}/auth
 
-patch 회원 수정 : {{url}}/users/
+- get 내 프로필 확인 : {{url}}/users/me
 
-get 전체회원 검색 : {{url}}/users
+- patch 회원 수정 : {{url}}/users/
 
-get 특정 회원 검색 : {{url}}/users/search/:userId
+- get 전체회원 검색 : {{url}}/users
 
-post 아이디(이메일) 찾기 : {{url}}/users/finding
+- get 특정 회원 검색 : {{url}}/users/search/:userId
 
-post 패스워드 초기화 메일 발송 : {{url}}/users/reset
+- post 아이디(이메일) 찾기 : {{url}}/users/finding
 
-get 회원 패스워드 수정 : {{url}}/users/modify/
+- post 패스워드 초기화 메일 발송 : {{url}}/users/reset
 
-post 회원 비밀번호 수정(관리자가) : {{url}}/users/reset/:token
+- get 회원 패스워드 수정 : {{url}}/users/modify/
 
-patch 회원 정보 수정(관리자가, 패스워드 제외한) : {{url}}/users/search/:userId
+- post 회원 비밀번호 수정(관리자가) : {{url}}/users/reset/:token
 
-post 회원 아바타 이미지 업로드 : {{url}}/users/uploadImg
+- patch 회원 정보 수정(관리자가, 패스워드 제외한) : {{url}}/users/search/:userId
 
-delte 이미지 삭제 : {{url}}/users/uploadImg
+- post 회원 아바타 이미지 업로드 : {{url}}/users/uploadImg
 
-get 회원 이미지 보기 : {{url}}/users/:id/avatar
+- delte 이미지 삭제 : {{url}}/users/uploadImg
+
+- get 회원 이미지 보기 : {{url}}/users/:id/avatar
 
 ### Memos.js
 
-post 메모 작성 : {{url}}/memos
+- post 메모 작성 : {{url}}/memos
 
-get 전체 메모 보기 : {{url}}/memos
+- get 내 전체 메모 보기 : {{url}}/memos
 
-delete 메모 삭제 by ID : {{url}}/memos/:memoId
+- delete 메모 삭제 by ID : {{url}}/memos/:memoId
 
-get 메모 찾기 by ID : {{url}}/memos/:memoId
+- get 메모 찾기 by ID : {{url}}/memos/:memoId
 
 patch 메모 수정 by ID : {{url}}/memos/:memoId
 
@@ -89,14 +93,11 @@ patch 메모 수정 by ID : {{url}}/memos/:memoId
 
 - http://api.expresstest.ml
 
-freenom의 무료 도메인 할당 및 네임서버 연결
-
-AWS Route 53 도메인 연결
+> freenom의 무료 도메인 할당 및 네임서버 연결  
+> AWS Route 53 도메인 연결
 
 - https://expresstest.ml //https 프로토콜
 
-SSL/TLS AWS Certiticate Manager(ACM)에서 인증서 발급
-
-EC2 Elastic Load Balancing 및 AWS Route 53 도메인 연결
-
-ELB로 80포트 443포트로 리디렉션
+> SSL/TLS AWS Certiticate Manager(ACM)에서 인증서 발급  
+> EC2 Elastic Load Balancing 및 AWS Route 53 도메인 연결  
+> ELB로 80포트 443포트로 리디렉션
