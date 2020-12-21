@@ -42,7 +42,7 @@ router
 router.route('/me').get(auth, me);
 
 //이메일로 발송된 링크로 회원 인증
-router.route('/certify/:token').get(auth, certifyUser);
+router.route('/certify/:token').get(certifyUser);
 
 router.route('/auth').get(auth, (req, res) => {
   //auth 미들웨어를 통과한 상태 이므로

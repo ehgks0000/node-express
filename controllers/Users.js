@@ -57,8 +57,6 @@ exports.register = async (req, res) => {
                         Please click this link if you want to be certified. : ${prod_url}/users/certify/${certifyToken}`,
             // Please click this link if you want to be certified. : ${process.env.CLIENT_URL}/users/certify/${certifyToken}`,
           };
-
-          console.log('회원 인증 토큰 : ', certifyToken);
           sendingMail(options);
         });
 
@@ -87,9 +85,7 @@ exports.certifyUser = async (req, res) => {
       // req.token = token;
       user.isCertified = true;
       user.save().then(() => {
-        console.log(
-          `회원님의 이메일이 인증 되었습니다! ${user.email} : ${token}`,
-        );
+        console.log(`회원님의 이메일이 인증 되었습니다! ${user.email}`);
       });
       return res.json({
         message: '회원님의 이메일이 인증 되었습니다! ',

@@ -93,3 +93,6 @@ module.exports = app;
 //Warning: connect.session() MemoryStore is not
 // 0|index    | designed for a production environment, as it will leak
 // 0|index    | memory, and will not scale past a single process.
+
+//알게된것
+//1024 보다 작은 숫자의 포트는 루트에서만 권한 생김

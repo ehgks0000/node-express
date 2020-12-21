@@ -7,8 +7,10 @@ exports.getMemo = async (req, res) => {
     // const memo = await Memo.find({ userId: req.user._id });
     await req.user.populate('memos').execPopulate();
 
+    console.log('메모찾기 완료');
     res.json(req.user.memos);
   } catch (e) {
+    console.log('메모찾기 오류');
     res.status(500).send();
   }
 };
@@ -42,7 +44,7 @@ exports.writeMemo = async (req, res) => {
     memo
       .save()
       .then(() => {
-        console.log(memo);
+        console.log('메모작성 : ', req.user.email);
         return res.json({ memo });
       })
       .catch(e => {

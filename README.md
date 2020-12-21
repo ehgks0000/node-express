@@ -1,9 +1,14 @@
 # 기초적인 Node js Back-end!
 
+- https://node-express-tutorials.herokuapp.com
+- http://api.expresstest.ml:80
+- https://expresstest.ml:443
+
 ## 기술 스택
 
 Arcitechture : node.js && Express.js  
 DB : MongoDB (mongoose)
+서버 : AWS EC2 Ubuntu 20.04
 
 ## 라이브러리
 
@@ -13,6 +18,8 @@ DB : MongoDB (mongoose)
 - jwt의 토큰을 이용한 회원가입, 로그인, 비밀번호 초기화, 회원 인증
 - nodemailer을 이용한 Gmail 이메일 발송
 - multer를 이용한 이미지 업로드 && sharp를 이용한 이미지 크롭
+
+- pm2(process manager)로 CI/CD
 
 ## 주요 기능 (Router)
 
@@ -78,16 +85,16 @@ patch 메모 수정 by ID : {{url}}/memos/:memoId
 
 - https://node-express-tutorials.herokuapp.com
 
-## aws ec2 완료
+## AWS ec2 완료
 
 - http://api.expresstest.ml
 
-freenom의 무료 도메인 할당
+freenom의 무료 도메인 할당 및 네임서버 연결
 
-aws Route 53 도메인 연결
+AWS Route 53 도메인 연결
 
-- http://api.expresstest.ml //https 프로토콜
+- https://expresstest.ml //https 프로토콜
 
 SSL/TLS AWS Certiticate Manager(ACM)에서 인증서 발급
 
-ec2 Elastic Load Balancing 및 aws Route 53 도메인 연결
+EC2 Elastic Load Balancing 및 AWS Route 53 도메인 연결
