@@ -60,9 +60,10 @@ app.get('/', (req, res) => {
     (req.connection.socket ? req.connection.socket.remoteAddress : null);
   //   const agent = req.headers['User-Agent'];
   const agent = req.get('User-Agent') || null;
-  if (agent !== 'ELB-HealthChecker/2.0') {
-    console.log('서버홈이 작동 되었습니다', ip, agent);
-  }
+  //   if (agent !== 'ELB-HealthChecker/2.0') {
+  //     console.log('서버홈이 작동 되었습니다', ip, agent);
+  //   }
+  console.log('서버홈이 작동 되었습니다', ip, agent);
   res.send({ message: '서버 홈이 작동되었습니다!' });
 });
 app.use('/users', usersRoute);
@@ -96,3 +97,5 @@ module.exports = app;
 
 //알게된것
 //1024 보다 작은 숫자의 포트는 루트에서만 권한 생김
+// http 80 https443으로 리디렉션
+// 나중에 회원 인증되면 홈으로 리디렉션을 넣어주자

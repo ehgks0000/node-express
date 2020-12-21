@@ -98,3 +98,5 @@ AWS Route 53 도메인 연결
 SSL/TLS AWS Certiticate Manager(ACM)에서 인증서 발급
 
 EC2 Elastic Load Balancing 및 AWS Route 53 도메인 연결
+
+ELB로 80포트 443포트로 리디렉션

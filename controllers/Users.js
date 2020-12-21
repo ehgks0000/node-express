@@ -74,6 +74,7 @@ exports.register = async (req, res) => {
 };
 exports.certifyUser = async (req, res) => {
   // console.log('회원 인증 접근');
+  // 나중에 회원 인증되면 홈으로 리디렉션을 넣어주자
   const token = req.params.token;
   User.findByToken(token, process.env.JWT_SECRET_KEY3)
     .then(user => {
