@@ -11,6 +11,7 @@ const connectDB = require('./db');
 const usersRoute = require('./rotues/Users');
 const memosRoute = require('./rotues/Memos');
 const errorHandler = require('./middleware/error');
+const helmet = require('helmet');
 const bodyparser = require('body-parser');
 const cookieparser = require('cookie-parser');
 
@@ -22,7 +23,7 @@ connectDB();
 // const prod = process.env.NODE_ENV === "production" ;
 const app = express();
 app.use(morgan('combined', { stream }));
-
+app.use(helmet());
 //  express-session
 app.use(
   session({
