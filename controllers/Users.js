@@ -127,7 +127,7 @@ exports.certifyUser = async (req, res) => {
 exports.getUsers = async (req, res) => {
   console.log('회원 전체검색 접근');
   try {
-    const user = await User.find();
+    const user = await User.find().populate('memos');
     res.json(user);
   } catch (err) {
     res.json({ message: err });

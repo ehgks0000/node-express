@@ -3,12 +3,15 @@ const { update } = require('../models/Users');
 const User = require('../models/Users');
 
 exports.getMemo = async (req, res) => {
+  const user = req.user;
   try {
     // const memo = await Memo.find({ userId: req.user._id });
-    await req.user.populate('memos').execPopulate();
+    // await user.populate('memos', 'text userId').execPopulate();
+    await user.populate('memos').execPopulate();
 
     console.log('메모찾기 완료');
-    res.json(req.user.memos);
+    // res.json(user);
+    res.json(user.memos);
   } catch (e) {
     console.log('메모찾기 오류');
     res.status(500).send();

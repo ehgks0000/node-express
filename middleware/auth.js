@@ -1,5 +1,4 @@
 const User = require('../models/Users');
-//isLogin ?
 const auth = (req, res, next) => {
   const token = req.cookies.x_auth;
   if (!token) {

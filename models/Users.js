@@ -90,6 +90,8 @@ UserSchema.virtual('memos', {
   localField: '_id',
   foreignField: 'userId',
 });
+UserSchema.set('toObject', { virtuals: true });
+UserSchema.set('toJSON', { virtuals: true });
 //
 // UserSchema.statics.create = function (email, password, name, age) {
 //     const user = new this({
@@ -152,9 +154,6 @@ UserSchema.methods.generateToken = async function (secret_key, expiresTime) {
   const token = jwt.sign({ _id: this._id.toHexString() }, secret_key, {
     expiresIn: expiresTime,
   });
-
-  // user.token = token;
-  //concat 대신 push는 왜 안될까
 
   user.tokens = user.tokens.concat({ token: token });
 

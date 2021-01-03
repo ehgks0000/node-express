@@ -5,13 +5,13 @@ const MemoryStore = require('memorystore')(session);
 const cors = require('cors');
 const passport = require('passport');
 const passportConfig = require('./lib/passport');
-passportConfig();
 const connectDB = require('./db');
 // const connectDB = require('./db')(session);
 const usersRoute = require('./rotues/Users');
 const memosRoute = require('./rotues/Memos');
 const errorHandler = require('./middleware/error');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const bodyparser = require('body-parser');
 const cookieparser = require('cookie-parser');
 
@@ -23,11 +23,14 @@ connectDB();
 // const prod = process.env.NODE_ENV === "production" ;
 const app = express();
 app.use(morgan('combined', { stream }));
+app.use(hpp());
 app.use(helmet());
 //  express-session
+app.use(cookieparser());
 app.use(
   session({
     cookie: {
+      httpOnly: true,
       secure: true,
       maxAge: 60000,
     },
@@ -40,6 +43,8 @@ app.use(
     saveUninitialized: true,
   }),
 );
+
+passportConfig();
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(
@@ -52,7 +57,6 @@ app.use(
 
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
-app.use(cookieparser());
 app.get('/', (req, res) => {
   const ip =
     req.headers['x-forwarded-for'] ||

@@ -26,9 +26,11 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 const User = require('../models/Users');
 
-// const prod = process.env.NODE_ENV === 'production';
 const heroku_prod_Url = 'https://node-express-tutorials.herokuapp.com';
 const aws_prod_Url = 'http://api.expresstest.ml';
+const front_dev_url = 'http://localhost:3000';
+const callbackUrl =
+  process.env.NODE_ENV === 'production' ? aws_prod_Url : front_dev_url;
 //유저 검색
 // auth 미들웨어로 req에 user 갖고있다면(로그인 돼있다면) 삭제가능
 //회원 스스로 데이터 수정
@@ -88,10 +90,11 @@ router
 router.route('/auth/google/callback').get(
   passport.authenticate('google', {
     // successRedirect: '/auth/google/success',
-    failureRedirect: `${heroku_prod_Url}`,
+    failureRedirect: '/',
   }),
   // successRedirect(),
   async (req, res) => {
+    // console.log('asdfasdf', req);
     const user = req.user;
     try {
       const expiresTime = '1h'; // 1시간 후 토큰 만료로 자동 로그아웃?
@@ -108,7 +111,7 @@ router.route('/auth/google/callback').get(
       return res
         .cookie('x_auth', userToken)
         .clearCookie('reset_auth')
-        .redirect(`${aws_prod_Url}/users/auth`);
+        .redirect(`${callbackUrl}/users/auth`);
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }
@@ -122,7 +125,7 @@ router
   });
 router.route('/auth/naver/callback').get(
   passport.authenticate('naver', {
-    failureRedirect: `${heroku_prod_Url}`,
+    failureRedirect: '/',
   }),
   async (req, res) => {
     const user = req.user;
@@ -141,7 +144,7 @@ router.route('/auth/naver/callback').get(
       return res
         .cookie('x_auth', userToken)
         .clearCookie('reset_auth')
-        .redirect(`${aws_prod_Url}/users/auth`);
+        .redirect(`${callbackUrl}/users/auth`);
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }

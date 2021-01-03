@@ -6,6 +6,14 @@
 
 ---
 
+## Setting
+
+1. npm i
+2. root/config 폴더에 config.env 파일 생성
+3.
+4. npm run dev
+5. npm start(build 후 pm2 start)
+
 ## 기술 스택
 
 > Arcitechture : node.js && Express.js  
