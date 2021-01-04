@@ -110,8 +110,10 @@ router.route('/auth/google/callback').get(
       // console.log(userToken);
       return res
         .cookie('x_auth', userToken)
+        .status(200)
         .clearCookie('reset_auth')
-        .redirect(`${callbackUrl}/users/auth`);
+        .redirect('localhost:3000');
+      // .redirect(`${callbackUrl}/users/auth`);
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }
