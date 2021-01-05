@@ -26,7 +26,6 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 const User = require('../models/Users');
 
-const heroku_prod_Url = 'https://node-express-tutorials.herokuapp.com';
 const aws_prod_Url = 'http://api.expresstest.ml';
 const front_dev_url = 'http://localhost:3000';
 const callbackUrl =
@@ -108,12 +107,14 @@ router.route('/auth/google/callback').get(
         console.log('일반회원 로그인 되었습니다!');
       }
       // console.log(userToken);
-      return res
-        .cookie('x_auth', userToken)
-        .status(200)
-        .clearCookie('reset_auth')
-        .redirect('localhost:3000');
-      // .redirect(`${callbackUrl}/users/auth`);
+      return (
+        res
+          .cookie('x_auth', userToken)
+          .status(200)
+          .clearCookie('reset_auth')
+          // .redirect('localhost:3000');
+          .redirect(`${callbackUrl}/users/auth`)
+      );
     } catch (err) {
       res.json({ loginSuccess: false, err: '토큰 오류' });
     }

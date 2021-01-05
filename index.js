@@ -69,7 +69,18 @@ app.get('/', (req, res) => {
   //     console.log('서버홈이 작동 되었습니다', ip, agent);
   //   }
   console.log('서버홈이 작동 되었습니다', ip, agent);
-  res.send({ message: '서버 홈이 작동되었습니다!' });
+  const prod =
+    process.env.NODE_ENV === 'production'
+      ? 'https://api.expresstest.ml'
+      : 'localhost:1337';
+  res.send(`Hello Home <br/>
+    <li><a href="${prod}">Home</a></li>
+    <li><a href="${prod}/users">/users</a></li>
+    <li><a href="${prod}/users/auth/google">/users/auth/google</a></li>
+    <li><a href="${prod}/users/auth/naver">/users/auth/naver</a></li>
+
+    <li><a href="${prod}/memos">/memos</a></li>
+  `);
 });
 app.use('/users', usersRoute);
 app.use('/memos', memosRoute);
