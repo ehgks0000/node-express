@@ -9,6 +9,8 @@ const connectDB = require('./db');
 // const connectDB = require('./db')(session);
 const usersRoute = require('./rotues/Users');
 const memosRoute = require('./rotues/Memos');
+const upmentRoute = require('./rotues/Upments');
+const downmentRoute = require('./rotues/Downments');
 const errorHandler = require('./middleware/error');
 const helmet = require('helmet');
 const hpp = require('hpp');
@@ -76,14 +78,18 @@ app.get('/', (req, res) => {
   res.send(`Hello Home <br/>
     <li><a href="${prod}">Home</a></li>
     <li><a href="${prod}/users">/users</a></li>
+    <li><a href="${prod}/users/auth">/users/auth</a></li>
     <li><a href="${prod}/users/auth/google">/users/auth/google</a></li>
     <li><a href="${prod}/users/auth/naver">/users/auth/naver</a></li>
 
     <li><a href="${prod}/memos">/memos</a></li>
+    <li><a href="${prod}/memos/all">/memos/all</a></li>
   `);
 });
 app.use('/users', usersRoute);
 app.use('/memos', memosRoute);
+app.use('/upments', upmentRoute);
+app.use('/downments', downmentRoute);
 // app.use('/auth', authRoute);
 // app.use(errorHandler);
 

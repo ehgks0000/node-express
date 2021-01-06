@@ -8,12 +8,20 @@ exports.getMemo = async (req, res) => {
     // const memo = await Memo.find({ userId: req.user._id });
     // await user.populate('memos', 'text userId').execPopulate();
     await user.populate('memos').execPopulate();
-
-    console.log('메모찾기 완료');
-    // res.json(user);
     res.json(user.memos);
   } catch (e) {
     console.log('메모찾기 오류');
+    res.status(500).send();
+  }
+};
+exports.getAllMemo = async (req, res) => {
+  try {
+    const memo = await Memo.find().populate('upments');
+    // const user = await User.find().populate('memos');
+
+    res.json(memo);
+  } catch (e) {
+    console.log('메모찾기 오류', e);
     res.status(500).send();
   }
 };

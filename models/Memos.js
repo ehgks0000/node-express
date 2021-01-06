@@ -13,7 +13,23 @@ const memoSchema = new mongoose.Schema({
     required: true,
     ref: 'User',
   },
+  created_at: {
+    type: Number,
+    default: Date.now,
+  },
+  updated_at: {
+    type: Number,
+    default: Date.now,
+  },
 });
+
+memoSchema.virtual('upments', {
+  ref: 'Upment',
+  localField: '_id',
+  foreignField: 'memo_id',
+});
+memoSchema.set('toObject', { virtuals: true });
+memoSchema.set('toJSON', { virtuals: true });
 
 memoSchema.methods.createMemo = function (text) {
   const memo = new this({

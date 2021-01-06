@@ -7,10 +7,12 @@ const {
   deleteMemo,
   getMemobyId,
   patchMemo,
+  getAllMemo,
 } = require('../controllers/Memos');
 
 router.route('/').get(auth, getMemo).post(auth, writeMemo);
-// router.route('/').post();
+
+router.route('/all').get(getAllMemo);
 router
   .route('/:memoId')
   .delete(auth, deleteMemo)

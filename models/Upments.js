@@ -15,7 +15,11 @@ const upmentSchema = new mongoose.Schema({
     required: true,
     ref: 'Memo',
   },
-  created_ad: {
+  created_at: {
+    type: Number,
+    default: Date.now,
+  },
+  updated_at: {
     type: Number,
     default: Date.now,
   },
@@ -23,6 +27,11 @@ const upmentSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+});
+upmentSchema.virtual('downments', {
+  ref: 'Downment',
+  localField: '_id',
+  foreignField: 'parent_id',
 });
 
 upmentSchema.methods.createUpment = function (text) {

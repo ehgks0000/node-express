@@ -41,10 +41,6 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: Date.now,
   },
-  // token: {
-  //     type: String,
-  // },
-  //토큰 배열 어케하지? ㄱㄷ
   tokens: [
     {
       token: {
@@ -72,12 +68,6 @@ const UserSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-  //   tests: [
-  //     {
-  //       test: { type: String },
-  //       mac: { type: String, unique: true },
-  //     },
-  //   ],
   avatar: {
     type: Buffer,
     required: true,
@@ -89,6 +79,16 @@ UserSchema.virtual('memos', {
   ref: 'Memo',
   localField: '_id',
   foreignField: 'userId',
+});
+UserSchema.virtual('upments', {
+  ref: 'Upment',
+  localField: '_id',
+  foreignField: 'writer_id',
+});
+UserSchema.virtual('downments', {
+  ref: 'Downment',
+  localField: '_id',
+  foreignField: 'writer_id',
 });
 UserSchema.set('toObject', { virtuals: true });
 UserSchema.set('toJSON', { virtuals: true });

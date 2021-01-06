@@ -20,7 +20,11 @@ const downSchema = new mongoose.Schema({
     required: true,
     ref: 'Memo',
   },
-  created_ad: {
+  created_at: {
+    type: Number,
+    default: Date.now,
+  },
+  updated_at: {
     type: Number,
     default: Date.now,
   },
