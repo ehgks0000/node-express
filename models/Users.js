@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Memo = require('./Memos');
+const Post = require('./Posts');
 // const { delete } = require('..');
 
 const UserSchema = new mongoose.Schema({
@@ -38,7 +38,7 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
   date: {
-    type: Number,
+    type: Date,
     default: Date.now,
   },
   tokens: [
@@ -75,20 +75,15 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.virtual('memos', {
-  ref: 'Memo',
+UserSchema.virtual('posts', {
+  ref: 'Post',
   localField: '_id',
   foreignField: 'userId',
 });
-UserSchema.virtual('upments', {
-  ref: 'Upment',
+UserSchema.virtual('comments', {
+  ref: 'Comment',
   localField: '_id',
-  foreignField: 'writer_id',
-});
-UserSchema.virtual('downments', {
-  ref: 'Downment',
-  localField: '_id',
-  foreignField: 'writer_id',
+  foreignField: 'author',
 });
 UserSchema.set('toObject', { virtuals: true });
 UserSchema.set('toJSON', { virtuals: true });
@@ -125,7 +120,7 @@ UserSchema.pre('save', function (next) {
 UserSchema.pre('remove', async function (next) {
   const user = this;
   try {
-    await Memo.deleteMany({ userId: user._id });
+    await Post.deleteMany({ userId: user._id });
     next();
   } catch (e) {
     next();
@@ -187,12 +182,6 @@ UserSchema.methods.generateResetPasswordToken = async function (
   return await this.save()
     .then(user => user.resetPasswordToken)
     .catch(err => err);
-};
-
-UserSchema.methods.macTest = function (text, mac) {
-  this.tests.push({ test: text, mac: mac });
-  // this.tests.push({ 1: 'asdddf', 2: '2' });
-  this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema);

@@ -1,11 +1,9 @@
 const mongoose = require('mongoose');
 
-const memoSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema({
   text: {
     type: String,
     required: true,
-    trim: true,
-    // ref: true,
   },
   completed: { type: String, required: true, default: false },
   userId: {
@@ -14,31 +12,25 @@ const memoSchema = new mongoose.Schema({
     ref: 'User',
   },
   created_at: {
-    type: Number,
+    type: Date,
     default: Date.now,
   },
   updated_at: {
-    type: Number,
-    default: Date.now,
+    type: Date,
   },
 });
 
-memoSchema.virtual('upments', {
-  ref: 'Upment',
-  localField: '_id',
-  foreignField: 'memo_id',
-});
-memoSchema.set('toObject', { virtuals: true });
-memoSchema.set('toJSON', { virtuals: true });
+postSchema.set('toObject', { virtuals: true });
+postSchema.set('toJSON', { virtuals: true });
 
-memoSchema.methods.createMemo = function (text) {
-  const memo = new this({
+postSchema.methods.createPost = function (text) {
+  const post = new this({
     text: text,
   });
-  return memo.save();
+  return post.save();
 };
 
-// memoSchema.methods.toJSON = function () {
+// postSchema.methods.toJSON = function () {
 //   const user = this;
 //   const userObject = user.toObject();
 
@@ -49,4 +41,4 @@ memoSchema.methods.createMemo = function (text) {
 //   return userObject;
 // };
 
-module.exports = mongoose.model('Memo', memoSchema);
+module.exports = mongoose.model('Post', postSchema);
